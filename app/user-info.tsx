@@ -1,11 +1,21 @@
 import { MaterialIcons } from "@expo/vector-icons";
+import DateTimePicker, { DateTimePickerAndroid, type DateTimePickerEvent } from "@react-native-community/datetimepicker";
 import * as ImagePicker from "expo-image-picker";
-import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
-import React, { useEffect, useLayoutEffect, useMemo, useState } from "react";
-import { Alert, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import React, { useEffect, useMemo, useState } from "react";
+import {
+    Alert,
+    Image,
+    Modal,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
-import { NavigationProp } from "@react-navigation/native";
 
 import { ThemeToggleButton } from "@/components/theme-toggle-button";
 import { Colors } from "@/constants/theme";
@@ -18,53 +28,83 @@ type FormState = {
   firstName: string;
   lastName: string;
   jobTitle: string;
+  company: string;
   email: string;
   dob: string;
   gender: string;
   location: string;
+  bio: string;
   avatar: string;
 };
 
-const paramToString = (value: string | string[] | undefined) => {
-  if (Array.isArray(value)) {
-    return value[0] ?? "";
+  const paramToString = (value: string | string[] | undefined) => {
+    if (Array.isArray(value)) {
+      return value[0] ?? "";
+    }
+    return value ?? "";
+  };
+
+const DOB_FORMAT = new Intl.DateTimeFormat("en-GB", {
+  day: "2-digit",
+  month: "short",
+  year: "numeric",
+});
+
+const parseDobString = (value: string): Date | null => {
+  if (!value) {
+    return null;
   }
-  return value ?? "";
+  const parsed = new Date(value);
+  if (!Number.isNaN(parsed.getTime())) {
+    return parsed;
+  }
+
+  const segments = value.split(/[-/]/);
+  if (segments.length === 3) {
+    const [a, b, c] = segments.map((segment) => segment.trim());
+    const reconstructed = `${c}-${b}-${a}`;
+    const altParsed = new Date(reconstructed);
+    if (!Number.isNaN(altParsed.getTime())) {
+      return altParsed;
+    }
+  }
+
+  return null;
 };
 
+const formatDob = (date: Date | null) => {
+  if (!date) return "";
+  return DOB_FORMAT.format(date);
+};
+
+const normalizeDob = (value: string) => formatDob(parseDobString(value));
+
 const buildInitialFormState = (params: Record<string, string | string[] | undefined>): FormState => ({
-  firstName: paramToString(params.firstName),
-  lastName: paramToString(params.lastName),
-  jobTitle: paramToString(params.jobTitle),
-  email: paramToString(params.email),
-  dob: paramToString(params.dob),
-  gender: paramToString(params.gender) || "Male",
-  location: paramToString(params.location),
+    firstName: paramToString(params.firstName),
+    lastName: paramToString(params.lastName),
+    jobTitle: paramToString(params.jobTitle),
+  company: paramToString(params.company) || "Lunar Studio",
+    email: paramToString(params.email),
+  dob: normalizeDob(paramToString(params.dob)),
+    gender: paramToString(params.gender) || "Male",
+    location: paramToString(params.location),
+  bio: paramToString(params.bio) || "",
   avatar: paramToString(params.avatar) || DEFAULT_AVATAR,
 });
 
 export default function UserInfo() {
   const router = useRouter();
   const params = useLocalSearchParams();
-  const navigation = useNavigation<NavigationProp<Record<string, object | undefined>>>();
   const { colorScheme, toggleTheme } = useTheme();
 
   const palette = Colors[colorScheme];
 
   const [form, setForm] = useState<FormState>(() => buildInitialFormState(params));
   const [showImageSheet, setShowImageSheet] = useState(false);
+  const [dobModalVisible, setDobModalVisible] = useState(false);
+  const [tempDob, setTempDob] = useState<Date>(parseDobString(buildInitialFormState(params).dob) ?? new Date());
 
   const { styles, placeholderColor } = useMemo(() => createStyles(colorScheme), [colorScheme]);
-
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerRight: () => <ThemeToggleButton colorScheme={colorScheme} onToggle={toggleTheme} />,
-      headerStyle: { backgroundColor: palette.background },
-      headerTintColor: palette.text,
-      headerTitleStyle: { color: palette.text },
-      headerShadowVisible: false,
-    });
-  }, [navigation, colorScheme, toggleTheme, palette.background, palette.text]);
 
   useEffect(() => {
     setForm(buildInitialFormState(params));
@@ -78,7 +118,13 @@ export default function UserInfo() {
     params.jobTitle,
     params.lastName,
     params.location,
+    params.company,
+    params.bio,
   ]);
+
+  useEffect(() => {
+    setTempDob(parseDobString(form.dob) ?? new Date());
+  }, [form.dob]);
 
   const handleInputChange = (key: keyof FormState, value: string) => {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -149,6 +195,35 @@ export default function UserInfo() {
     setShowImageSheet(false);
   };
 
+  const handleDobChange = (date: Date) => {
+    handleInputChange("dob", formatDob(date));
+  };
+
+  const openDobPicker = () => {
+    const currentDate = parseDobString(form.dob) ?? new Date();
+
+    if (Platform.OS === "android") {
+      DateTimePickerAndroid.open({
+        mode: "date",
+        value: currentDate,
+        onChange: (_event: DateTimePickerEvent, selectedDate?: Date) => {
+          if (selectedDate) {
+            handleDobChange(selectedDate);
+          }
+        },
+        maximumDate: new Date(),
+      });
+    } else {
+      setTempDob(currentDate);
+      setDobModalVisible(true);
+    }
+  };
+
+  const handleDobConfirm = () => {
+    handleDobChange(tempDob);
+    setDobModalVisible(false);
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView
@@ -156,85 +231,93 @@ export default function UserInfo() {
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header */}
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <MaterialIcons name="arrow-back" size={24} color={palette.text} />
-        </TouchableOpacity>
-        <Text style={styles.title}>Profile</Text>
 
-        {/* Profile Icon */}
-        <View style={styles.imageContainer}>
-          <Image
-            source={{
-              uri: form.avatar,
-            }}
-            style={styles.avatar}
-          />
-          <TouchableOpacity style={styles.editIcon} onPress={() => setShowImageSheet(true)}>
-            <MaterialIcons name="edit" size={16} color={colorScheme === "dark" ? "#151718" : "#fff"} />
-          </TouchableOpacity>
+        <View style={styles.topBar}>
+      <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+            <MaterialIcons name="arrow-back" size={24} color={palette.text} />
+      </TouchableOpacity>
+          <Text style={styles.title}>Edit Profile</Text>
+          <ThemeToggleButton colorScheme={colorScheme} onToggle={toggleTheme} />
         </View>
 
-        {/* Input Fields */}
-        <View style={styles.form}>
-          <Text style={styles.label}>First Name</Text>
-          <TextInput
-            placeholder="Enter first name"
-            value={form.firstName}
-            onChangeText={(t) => handleInputChange("firstName", t)}
-            style={styles.input}
+      {/* Profile Icon */}
+      <View style={styles.imageContainer}>
+        <Image
+          source={{
+              uri: form.avatar,
+          }}
+          style={styles.avatar}
+        />
+          <TouchableOpacity style={styles.editIcon} onPress={() => setShowImageSheet(true)}>
+            <MaterialIcons name="edit" size={16} color={colorScheme === "dark" ? "#151718" : "#fff"} />
+        </TouchableOpacity>
+      </View>
+
+      {/* Input Fields */}
+      <View style={styles.form}>
+        <Text style={styles.label}>First Name</Text>
+        <TextInput
+          placeholder="Enter first name"
+          value={form.firstName}
+          onChangeText={(t) => handleInputChange("firstName", t)}
+          style={styles.input}
+            placeholderTextColor={placeholderColor}
+        />
+
+        <Text style={styles.label}>Last Name</Text>
+        <TextInput
+          placeholder="Enter last name"
+          value={form.lastName}
+          onChangeText={(t) => handleInputChange("lastName", t)}
+          style={styles.input}
+            placeholderTextColor={placeholderColor}
+        />
+
+        <Text style={styles.label}>Job Title</Text>
+        <TextInput
+          placeholder="Enter job title"
+          value={form.jobTitle}
+          onChangeText={(t) => handleInputChange("jobTitle", t)}
+          style={styles.input}
             placeholderTextColor={placeholderColor}
           />
 
-          <Text style={styles.label}>Last Name</Text>
+          <Text style={styles.label}>Company</Text>
           <TextInput
-            placeholder="Enter last name"
-            value={form.lastName}
-            onChangeText={(t) => handleInputChange("lastName", t)}
+            placeholder="Enter company"
+            value={form.company}
+            onChangeText={(t) => handleInputChange("company", t)}
             style={styles.input}
             placeholderTextColor={placeholderColor}
-          />
+        />
 
-          <Text style={styles.label}>Job Title</Text>
-          <TextInput
-            placeholder="Enter job title"
-            value={form.jobTitle}
-            onChangeText={(t) => handleInputChange("jobTitle", t)}
-            style={styles.input}
+        <Text style={styles.label}>E-mail</Text>
+        <TextInput
+          placeholder="Enter email"
+          value={form.email}
+          onChangeText={(t) => handleInputChange("email", t)}
+          keyboardType="email-address"
+          style={styles.input}
             placeholderTextColor={placeholderColor}
-          />
+        />
 
-          <Text style={styles.label}>E-mail</Text>
-          <TextInput
-            placeholder="Enter email"
-            value={form.email}
-            onChangeText={(t) => handleInputChange("email", t)}
-            keyboardType="email-address"
-            style={styles.input}
-            placeholderTextColor={placeholderColor}
-          />
-
-          <Text style={styles.label}>Date of Birth</Text>
-          <View style={styles.inputWithIcon}>
-            <TextInput
-              placeholder="DD/MM/YYYY"
-              value={form.dob}
-              onChangeText={(t) => handleInputChange("dob", t)}
-              style={[styles.input, styles.dateInput]}
-              placeholderTextColor={placeholderColor}
-            />
+        <Text style={styles.label}>Date of Birth</Text>
+          <TouchableOpacity style={styles.inputWithIcon} onPress={openDobPicker} activeOpacity={0.8}>
+            <Text style={[styles.dateText, !form.dob && styles.datePlaceholder]}>
+              {form.dob || "Select date"}
+            </Text>
             <MaterialIcons name="calendar-today" size={20} color={palette.tint} />
-          </View>
+          </TouchableOpacity>
 
-          <Text style={styles.label}>Gender</Text>
-          <View style={styles.genderContainer}>
-            {["Male", "Female"].map((g) => (
-              <TouchableOpacity
-                key={g}
-                onPress={() => handleInputChange("gender", g)}
+        <Text style={styles.label}>Gender</Text>
+        <View style={styles.genderContainer}>
+          {["Male", "Female"].map((g) => (
+            <TouchableOpacity
+              key={g}
+              onPress={() => handleInputChange("gender", g)}
                 style={[styles.genderOption, form.gender === g && styles.genderActive]}
-              >
-                {form.gender === g && (
+            >
+              {form.gender === g && (
                   <MaterialIcons
                     name="check-circle"
                     size={18}
@@ -243,27 +326,38 @@ export default function UserInfo() {
                   />
                 )}
                 <Text style={[styles.genderText, form.gender === g && styles.genderTextActive]}>{g}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+            </TouchableOpacity>
+          ))}
+        </View>
 
-          <Text style={styles.label}>Location</Text>
-          <TextInput
-            placeholder="Enter location"
-            multiline
-            numberOfLines={3}
-            value={form.location}
-            onChangeText={(t) => handleInputChange("location", t)}
+        <Text style={styles.label}>Location</Text>
+        <TextInput
+          placeholder="Enter location"
+          multiline
+          numberOfLines={3}
+          value={form.location}
+          onChangeText={(t) => handleInputChange("location", t)}
             style={[styles.input, styles.locationInput]}
             placeholderTextColor={placeholderColor}
           />
-        </View>
 
-        {/* Save Button */}
-        <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-          <Text style={styles.saveText}>Save Changes</Text>
-        </TouchableOpacity>
-      </ScrollView>
+          <Text style={styles.label}>Bio</Text>
+          <TextInput
+            placeholder="Tell us about yourself"
+            multiline
+            numberOfLines={4}
+            value={form.bio}
+            onChangeText={(t) => handleInputChange("bio", t)}
+            style={[styles.input, styles.bioInput]}
+            placeholderTextColor={placeholderColor}
+        />
+      </View>
+
+      {/* Save Button */}
+      <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+        <Text style={styles.saveText}>Save Changes</Text>
+      </TouchableOpacity>
+    </ScrollView>
 
       <UpdateUserImageSheet
         visible={showImageSheet}
@@ -273,6 +367,45 @@ export default function UserInfo() {
         onDeletePhoto={onDeletePhoto}
         colorScheme={colorScheme}
       />
+
+      {Platform.OS === "ios" && (
+        <Modal
+          visible={dobModalVisible}
+          transparent
+          animationType="slide"
+          onRequestClose={() => setDobModalVisible(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <View style={styles.modalHeader}>
+                <TouchableOpacity onPress={() => setDobModalVisible(false)}>
+                  <Text style={styles.modalSecondary}>Cancel</Text>
+                </TouchableOpacity>
+                <Text style={styles.modalTitle}>Select date</Text>
+                <TouchableOpacity onPress={handleDobConfirm}>
+                  <Text style={styles.modalPrimary}>Done</Text>
+                </TouchableOpacity>
+              </View>
+              <View style={styles.modalPickerContainer}>
+                <DateTimePicker
+                  mode="date"
+                  value={tempDob}
+                  onChange={(_event: DateTimePickerEvent, selectedDate?: Date) => {
+                    if (selectedDate) {
+                      setTempDob(selectedDate);
+                    }
+                  }}
+                  maximumDate={new Date()}
+                  display="spinner"
+                  style={styles.modalPicker}
+                  themeVariant={colorScheme}
+                  textColor={palette.text}
+                />
+              </View>
+            </View>
+          </View>
+        </Modal>
+      )}
     </SafeAreaView>
   );
 }
@@ -286,7 +419,7 @@ const createStyles = (colorScheme: "light" | "dark") => {
   const saveTextColor = colorScheme === "dark" ? "#151718" : "#fff";
   const placeholderColor = colorScheme === "dark" ? "#8A8F98" : "#A1A5AD";
 
-  const styles = StyleSheet.create({
+const styles = StyleSheet.create({
     safeArea: {
       flex: 1,
       backgroundColor: palette.background,
@@ -294,116 +427,179 @@ const createStyles = (colorScheme: "light" | "dark") => {
     scrollView: {
       flex: 1,
     },
-    container: {
-      padding: 20,
+  container: {
+    padding: 20,
       backgroundColor: palette.background,
-      flexGrow: 1,
-    },
-    backButton: {
-      alignSelf: "flex-start",
-      marginBottom: 10,
-    },
-    title: {
-      fontSize: 18,
-      fontWeight: "600",
-      textAlign: "center",
-      color: palette.text,
-      marginBottom: 10,
-    },
-    imageContainer: {
-      alignItems: "center",
-      justifyContent: "center",
-      marginVertical: 10,
-    },
-    avatar: {
-      width: 80,
-      height: 80,
-      borderRadius: 40,
-    },
-    editIcon: {
-      position: "absolute",
-      bottom: 0,
-      right: 140,
-      backgroundColor: accent,
-      padding: 5,
-      borderRadius: 20,
-    },
-    form: {
-      marginTop: 20,
-    },
-    label: {
-      fontSize: 13,
-      fontWeight: "500",
-      color: secondaryText,
-      marginBottom: 6,
-      marginTop: 10,
-    },
-    input: {
-      backgroundColor: surface,
-      borderWidth: 1,
-      borderColor,
-      borderRadius: 12,
-      paddingHorizontal: 12,
-      paddingVertical: 10,
-      fontSize: 14,
-      color: palette.text,
-    },
-    dateInput: {
-      flex: 1,
-      borderWidth: 0,
-      backgroundColor: "transparent",
-      paddingHorizontal: 0,
-    },
-    inputWithIcon: {
+    flexGrow: 1,
+  },
+    topBar: {
       flexDirection: "row",
       alignItems: "center",
-      borderWidth: 1,
-      borderColor,
-      borderRadius: 12,
-      paddingHorizontal: 12,
-      backgroundColor: surface,
-    },
-    genderContainer: {
-      flexDirection: "row",
       justifyContent: "space-between",
-      marginTop: 8,
+      marginBottom: 16,
     },
-    genderOption: {
-      flex: 1,
-      flexDirection: "row",
+  backButton: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
       alignItems: "center",
       justifyContent: "center",
-      borderWidth: 1,
-      borderColor,
-      borderRadius: 25,
-      paddingVertical: 10,
-      marginHorizontal: 4,
-      backgroundColor: surface,
-    },
-    genderActive: {
-      backgroundColor: accent,
-    },
-    genderText: {
+      backgroundColor: colorScheme === "dark" ? "#2A2C31" : "#F2F3F7",
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: "600",
       color: palette.text,
-      fontWeight: "500",
-    },
-    genderTextActive: {
-      color: saveTextColor,
-    },
-    saveButton: {
+      flex: 1,
+    textAlign: "center",
+  },
+  imageContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    marginVertical: 10,
+  },
+  avatar: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+  },
+  editIcon: {
+    position: "absolute",
+    bottom: 0,
+    right: 140,
       backgroundColor: accent,
-      borderRadius: 30,
-      paddingVertical: 14,
-      marginTop: 20,
-      alignItems: "center",
+    padding: 5,
+    borderRadius: 20,
+  },
+  form: {
+    marginTop: 20,
+  },
+  label: {
+    fontSize: 13,
+    fontWeight: "500",
+      color: secondaryText,
+    marginBottom: 6,
+    marginTop: 10,
+  },
+  input: {
+      backgroundColor: surface,
+    borderWidth: 1,
+      borderColor,
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 14,
+      color: palette.text,
+  },
+  inputWithIcon: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+      borderColor,
+    borderRadius: 12,
+    paddingHorizontal: 12,
+      backgroundColor: surface,
+      minHeight: 48,
     },
-    saveText: {
+    dateText: {
+      flex: 1,
+      color: palette.text,
+      fontSize: 14,
+    },
+    datePlaceholder: {
+      color: placeholderColor,
+  },
+  genderContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 8,
+  },
+  genderOption: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+      borderColor,
+    borderRadius: 25,
+    paddingVertical: 10,
+    marginHorizontal: 4,
+      backgroundColor: surface,
+  },
+  genderActive: {
+      backgroundColor: accent,
+  },
+  genderText: {
+      color: palette.text,
+    fontWeight: "500",
+  },
+  genderTextActive: {
       color: saveTextColor,
-      fontWeight: "600",
-    },
+  },
+  saveButton: {
+      backgroundColor: accent,
+    borderRadius: 30,
+    paddingVertical: 14,
+    marginTop: 20,
+    alignItems: "center",
+  },
+  saveText: {
+      color: saveTextColor,
+    fontWeight: "600",
+  },
     locationInput: {
       height: 80,
       textAlignVertical: "top",
+    },
+    bioInput: {
+      height: 110,
+      textAlignVertical: "top",
+    },
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: "rgba(0,0,0,0.45)",
+      justifyContent: "flex-end",
+    },
+    modalContent: {
+      backgroundColor: palette.background,
+      borderTopLeftRadius: 24,
+      borderTopRightRadius: 24,
+      paddingBottom: 32,
+      overflow: "hidden",
+    },
+    modalHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: 20,
+      paddingVertical: 12,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colorScheme === "dark" ? "#33363B" : "#E4E7EC",
+    },
+    modalTitle: {
+      fontSize: 16,
+      fontWeight: "600",
+      color: palette.text,
+    },
+    modalPrimary: {
+      color: accent,
+      fontWeight: "600",
+      fontSize: 15,
+    },
+    modalSecondary: {
+      color: secondaryText,
+      fontSize: 15,
+    },
+    modalPickerContainer: {
+      paddingHorizontal: 20,
+      paddingBottom: 16,
+      paddingTop: 4,
+      backgroundColor: palette.background,
+    },
+    modalPicker: {
+      backgroundColor: palette.background,
+      height: 220,
+      alignSelf: "stretch",
     },
   });
 

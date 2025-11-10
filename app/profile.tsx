@@ -1,6 +1,6 @@
 import { MaterialIcons } from "@expo/vector-icons";
-import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
-import React, { useLayoutEffect, useMemo } from "react";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import React, { useMemo } from "react";
 import {
     Image,
     ScrollView,
@@ -8,13 +8,25 @@ import {
     Text,
     TouchableOpacity,
     View,
+    type ImageSourcePropType,
 } from "react-native";
-
-import { NavigationProp } from "@react-navigation/native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ThemeToggleButton } from "@/components/theme-toggle-button";
 import { Colors } from "@/constants/theme";
 import { useTheme } from "@/contexts/theme-context";
+
+type ExperienceItem = {
+  logo: ImageSourcePropType;
+  title: string;
+  company: string;
+};
+
+type EducationItem = {
+  logo: ImageSourcePropType;
+  title: string;
+  subtitle: string;
+};
 
 const DEFAULT_USER = {
   firstName: "Pyotr",
@@ -36,13 +48,40 @@ const paramToString = (value: string | string[] | undefined) => {
   return value ?? "";
 };
 
+const EXPERIENCE_ITEMS: ReadonlyArray<ExperienceItem> = [
+  {
+    logo: require("@/assets/images/netflix.png"),
+    title: "Sr. UI Designer",
+    company: "Netflix • 2019",
+  },
+  {
+    logo: require("@/assets/images/paypal.png"),
+    title: "Junior UI Designer",
+    company: "PayPal • 2020",
+  },
+  {
+    logo: require("@/assets/images/spotify.png"),
+    title: "UI/UX Designer",
+    company: "Spotify • 2021",
+  },
+] as const;
+
+const EDUCATION_ITEMS: ReadonlyArray<EducationItem> = [
+  {
+    logo: require("@/assets/images/university-of-oxford-badge-logo.png"),
+    title: "University of Oxford",
+    subtitle: "Computer Science • 2020",
+  },
+] as const;
+
 export default function ProfileScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
-  const navigation = useNavigation<NavigationProp<Record<string, object | undefined>>>();
   const { colorScheme, toggleTheme } = useTheme();
   const palette = useMemo(() => Colors[colorScheme], [colorScheme]);
-  const styles = useMemo(() => createStyles(colorScheme), [colorScheme]);
+  const accent = useMemo(() => (colorScheme === "dark" ? "#F4A300" : palette.tint), [colorScheme, palette.tint]);
+  const iconOnAccent = colorScheme === "dark" ? "#151718" : "#fff";
+  const styles = useMemo(() => createStyles(colorScheme, accent), [colorScheme, accent]);
 
   const user = useMemo(() => {
     const mergedUser = { ...DEFAULT_USER };
@@ -68,6 +107,12 @@ export default function ProfileScreen() {
     const location = paramToString(params.location);
     if (location) mergedUser.location = location;
 
+    const company = paramToString(params.company);
+    if (company) mergedUser.company = company;
+
+    const bio = paramToString(params.bio);
+    if (bio) mergedUser.bio = bio;
+
     const avatar = paramToString(params.avatar);
     if (avatar) mergedUser.avatar = avatar;
 
@@ -80,18 +125,10 @@ export default function ProfileScreen() {
     params.jobTitle,
     params.lastName,
     params.location,
+    params.company,
+    params.bio,
     params.avatar,
   ]);
-
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerRight: () => <ThemeToggleButton colorScheme={colorScheme} onToggle={toggleTheme} />,
-      headerStyle: { backgroundColor: palette.background },
-      headerTintColor: palette.text,
-      headerTitleStyle: { color: palette.text },
-      headerShadowVisible: false,
-    });
-  }, [navigation, colorScheme, toggleTheme, palette]);
 
   const handleEditPress = () => {
     router.push({
@@ -104,35 +141,35 @@ export default function ProfileScreen() {
         dob: user.dob,
         gender: user.gender,
         location: user.location,
-          avatar: user.avatar,
+        company: user.company,
+        bio: user.bio,
+        avatar: user.avatar,
       },
     });
   };
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      {/* Header Image */}
-      <Image
-        source={{
-          uri: "https://images.unsplash.com/photo-1495195134817-aeb325a55b65",
-        }}
-        style={styles.headerImage}
-      />
-
-      {/* Edit Button */}
-      <TouchableOpacity
-        style={styles.editBtn}
-        onPress={handleEditPress}
+    <SafeAreaView style={styles.safeArea}>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.contentContainer}
+        showsVerticalScrollIndicator={false}
       >
-        <MaterialIcons name="edit" size={22} color="#fff" />
-      </TouchableOpacity>
 
+      <View style={styles.topBar}>
+        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+          <MaterialIcons name="arrow-back" size={24} color={palette.text} />
+        </TouchableOpacity>
+        <ThemeToggleButton colorScheme={colorScheme} onToggle={toggleTheme} />
+      </View>
+
+     
       {/* Profile Section */}
       <View style={styles.profileSection}>
         <Image
           source={{
-            uri: user.avatar,
-          }}
+              uri: user.avatar,
+            }}
           style={styles.avatar}
         />
         <Text style={styles.name}>
@@ -151,6 +188,9 @@ export default function ProfileScreen() {
           <TouchableOpacity style={styles.hiringBtn}>
             <Text style={styles.hiringBtnText}>Hiring</Text>
           </TouchableOpacity>
+            <TouchableOpacity style={styles.editBtn} onPress={handleEditPress}>
+              <MaterialIcons name="edit" size={22} color={iconOnAccent} />
+            </TouchableOpacity>
         </View>
       </View>
 
@@ -163,25 +203,9 @@ export default function ProfileScreen() {
       {/* Experience Section */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Experience</Text>
-        {[
-          {
-            logo: "https://upload.wikimedia.org/wikipedia/commons/0/08/Netflix_2015_logo.svg",
-            title: "Sr. UI Designer",
-            company: "Netflix • 2019",
-          },
-          {
-            logo: "https://upload.wikimedia.org/wikipedia/commons/5/53/PayPal_2014_logo.png",
-            title: "Junior UI Designer",
-            company: "PayPal • 2020",
-          },
-          {
-            logo: "https://upload.wikimedia.org/wikipedia/commons/2/26/Spotify_logo_with_text.svg",
-            title: "UI/UX Designer",
-            company: "Spotify • 2021",
-          },
-        ].map((exp, index) => (
+        {EXPERIENCE_ITEMS.map((exp, index) => (
           <View key={index} style={styles.expItem}>
-            <Image source={{ uri: exp.logo }} style={styles.expIcon} />
+            <Image source={exp.logo} style={styles.expIcon} />
             <View>
               <Text style={styles.expTitle}>{exp.title}</Text>
               <Text style={styles.expSub}>{exp.company}</Text>
@@ -221,24 +245,42 @@ export default function ProfileScreen() {
       {/* Education Section */}
       <View style={[styles.section, { marginBottom: 60 }]}>
         <Text style={styles.sectionTitle}>Education</Text>
-        <View style={styles.expItem}>
-          <Image
-            source={{
-              uri: "https://upload.wikimedia.org/wikipedia/en/d/d8/University_of_Oxford_coat_of_arms.svg",
-            }}
-            style={styles.expIcon}
-          />
-          <View>
-            <Text style={styles.expTitle}>University of Oxford</Text>
-            <Text style={styles.expSub}>Computer Science • 2020</Text>
+        {EDUCATION_ITEMS.map((education, index) => (
+          <View key={index} style={styles.expItem}>
+            <Image source={education.logo} style={styles.expIcon} />
+            <View>
+              <Text style={styles.expTitle}>{education.title}</Text>
+              <Text style={styles.expSub}>{education.subtitle}</Text>
+            </View>
           </View>
-        </View>
+        ))}
       </View>
     </ScrollView>
+    </SafeAreaView>
   );
 }
 
-const createStyles = (colorScheme: "light" | "dark") => {
+const createShadow = (colorScheme: "light" | "dark") => {
+  if (colorScheme === "dark") {
+    return {
+      shadowColor: "#000",
+      shadowOpacity: 0.3,
+      shadowOffset: { width: 0, height: 6 },
+      shadowRadius: 12,
+      elevation: 8,
+    };
+  }
+
+  return {
+    shadowColor: "#000",
+    shadowOpacity: 0.12,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 8,
+    elevation: 4,
+  };
+};
+
+const createStyles = (colorScheme: "light" | "dark", accent: string) => {
   const palette = Colors[colorScheme];
   const secondaryText = colorScheme === "dark" ? "#C4C8CF" : "#666";
   const tertiaryText = colorScheme === "dark" ? "#A1A5AD" : "#777";
@@ -247,18 +289,31 @@ const createStyles = (colorScheme: "light" | "dark") => {
   const emphasisText = colorScheme === "dark" ? "#151718" : "#fff";
 
   return StyleSheet.create({
-    container: { flex: 1, backgroundColor: palette.background },
-    headerImage: { width: "100%", height: 140 },
+    safeArea: { flex: 1, backgroundColor: palette.background },
+    container: { flex: 1 },
+    contentContainer: { paddingBottom: 40 },
+    topBar: {
+      marginTop: 8,
+      paddingHorizontal: 20,
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+    },
+    backButton: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: colorScheme === "dark" ? "#2A2C31" : "#F2F3F7",
+    },
     editBtn: {
-      position: "absolute",
-      right: 20,
-      top: 100,
-      backgroundColor: palette.tint,
+      backgroundColor: accent,
       borderRadius: 25,
       padding: 10,
-      elevation: 4,
+      ...createShadow(colorScheme),
     },
-    profileSection: { alignItems: "center", marginTop: -40 },
+    profileSection: { alignItems: "center", marginTop: 20, paddingHorizontal: 20 },
     avatar: {
       width: 80,
       height: 80,
@@ -268,11 +323,11 @@ const createStyles = (colorScheme: "light" | "dark") => {
     },
     name: { fontSize: 22, fontWeight: "700", marginTop: 8, color: palette.text },
     role: { fontSize: 14, color: secondaryText },
-    company: { color: palette.tint, fontWeight: "600" },
+    company: { color: accent, fontWeight: "600" },
     bio: { fontSize: 13, color: tertiaryText, marginVertical: 4 },
     buttonRow: { flexDirection: "row", gap: 10, marginTop: 12 },
     sendBtn: {
-      backgroundColor: palette.tint,
+      backgroundColor: accent,
       borderRadius: 10,
       paddingVertical: 10,
       paddingHorizontal: 20,
@@ -305,7 +360,7 @@ const createStyles = (colorScheme: "light" | "dark") => {
       paddingHorizontal: 14,
     },
     skillText: { color: palette.text, fontWeight: "500", fontSize: 13 },
-    activeSkillChip: { backgroundColor: palette.tint },
+    activeSkillChip: { backgroundColor: accent },
     activeSkillText: { color: emphasisText },
   });
 };
