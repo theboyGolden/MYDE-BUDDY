@@ -1,0 +1,39 @@
+import { ScrollView, StyleSheet, View } from 'react-native';
+
+import { Header } from '@/components/header';
+import { ThemedText } from '@/components/themed-text';
+import { ThemedView } from '@/components/themed-view';
+
+export default function NetworkingScreen() {
+  return (
+    <View style={styles.container}>
+      <Header title="Networking" />
+      <ScrollView style={styles.scrollView}>
+        <ThemedView style={styles.content}>
+          <ThemedText type="title">Networking</ThemedText>
+          <ThemedText style={styles.description}>
+            Connect with professionals, mentors, and peers in your industry.
+          </ThemedText>
+        </ThemedView>
+      </ScrollView>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  content: {
+    padding: 20,
+    gap: 16,
+  },
+  description: {
+    marginTop: 8,
+    opacity: 0.7,
+  },
+});
+
