@@ -20,6 +20,7 @@ export function Header({ title, onNotificationPress, onProfilePress }: HeaderPro
   const { colorScheme, toggleTheme } = useTheme();
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
   const iconColor = useThemeColor({}, 'icon');
   const backgroundColor = useThemeColor({}, 'background');
   const borderColor = useThemeColor(
@@ -37,9 +38,9 @@ export function Header({ title, onNotificationPress, onProfilePress }: HeaderPro
     onProfilePress?.();
   };
 
-  const handleLoginPress = () => {
+  const handleNavigate = (path: string) => {
     setIsMenuOpen(false);
-    router.replace('/login');
+    router.push(path);
   };
 
   return (
@@ -60,7 +61,7 @@ export function Header({ title, onNotificationPress, onProfilePress }: HeaderPro
 
         {/* Right side - Action buttons */}
         <ThemedView style={styles.rightActions}>
-          {/* Theme toggle button */}
+          {/* Theme toggle */}
           <TouchableOpacity
             onPress={toggleTheme}
             style={styles.iconButton}
@@ -74,7 +75,7 @@ export function Header({ title, onNotificationPress, onProfilePress }: HeaderPro
             />
           </TouchableOpacity>
 
-          {/* Notification button */}
+          {/* Notifications */}
           <TouchableOpacity
             onPress={onNotificationPress}
             style={styles.iconButton}
@@ -84,13 +85,13 @@ export function Header({ title, onNotificationPress, onProfilePress }: HeaderPro
             <MaterialIcons name="notifications-none" size={24} color={iconColor} />
           </TouchableOpacity>
 
-          {/* Profile button */}
+          {/* Profile dropdown */}
           <View style={styles.profileContainer}>
             <TouchableOpacity
               onPress={handleProfilePress}
               style={styles.iconButton}
               activeOpacity={0.7}
-              accessibilityLabel="Profile"
+              accessibilityLabel="Profile menu"
               accessibilityRole="button">
               <MaterialIcons name="person-outline" size={24} color={iconColor} />
             </TouchableOpacity>
@@ -104,9 +105,19 @@ export function Header({ title, onNotificationPress, onProfilePress }: HeaderPro
                     borderColor: menuBorderColor,
                   },
                 ]}>
+                {/* Profile link */}
                 <TouchableOpacity
                   style={styles.dropdownItem}
-                  onPress={handleLoginPress}
+                  onPress={() => handleNavigate('/profile')}
+                  activeOpacity={0.7}>
+                  <MaterialIcons name="person" size={18} color={iconColor} />
+                  <ThemedText style={styles.dropdownText}>Profile</ThemedText>
+                </TouchableOpacity>
+
+                {/* Login link */}
+                <TouchableOpacity
+                  style={styles.dropdownItem}
+                  onPress={() => handleNavigate('/login')}
                   activeOpacity={0.7}>
                   <MaterialIcons name="login" size={18} color={iconColor} />
                   <ThemedText style={styles.dropdownText}>Login</ThemedText>
@@ -124,10 +135,7 @@ const styles = StyleSheet.create({
   header: {
     borderBottomWidth: StyleSheet.hairlineWidth,
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
     elevation: 2,
@@ -168,7 +176,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 48,
     right: 0,
-    minWidth: 140,
+    minWidth: 150,
     borderRadius: 10,
     paddingVertical: 8,
     borderWidth: StyleSheet.hairlineWidth,
@@ -191,4 +199,3 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
 });
-

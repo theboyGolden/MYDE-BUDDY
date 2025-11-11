@@ -25,6 +25,8 @@ function RootLayoutNav() {
         <Stack.Screen name="education-centre" options={{ headerShown: false }} />
         <Stack.Screen name="entrepreneurship-centre" options={{ headerShown: false }} />
         <Stack.Screen name="networking" options={{ headerShown: false }} />
+        <Stack.Screen name="profile" options={{ headerShown: false }} />
+        <Stack.Screen name="user-info" options={{ headerShown: false }} />
       </Stack>
       <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
     </NavigationThemeProvider>
