@@ -1,15 +1,19 @@
 // src/app/(tabs)/JobCenterScreen.tsx
+import { Ionicons } from '@expo/vector-icons';
+import React, { useMemo, useState } from 'react';
+import { Image, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+
+import { Header } from '@/components/header';
 import BrowseCategories from '@/components/jobCenter/browseCategories';
 import FilterSheet, { FilterOptions } from '@/components/jobCenter/modals/FilterSheet';
 import RemoteJobs from '@/components/jobCenter/remoteJobs';
 import SearchBar from '@/components/jobCenter/searchBar';
 import SectionHeader from '@/components/jobCenter/sectionHeader';
 import TopCompanies from '@/components/jobCenter/topCompanies';
-import { BRAND, BRAND_BG, CARD_BG, TEXT_MUTED } from '@/constants/colors';
-import { Ionicons } from '@expo/vector-icons';
-import React, { useState } from 'react';
-import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { ThemedText } from '@/components/themed-text';
+import { ThemedView } from '@/components/themed-view';
+import { CARD_BG, TEXT_MUTED } from '@/constants/colors';
+import { useThemeColor } from '@/hooks/use-theme-color';
 
 export default function JobCenterScreen() {
   const handleCategory = (id: string) => {
@@ -41,14 +45,56 @@ export default function JobCenterScreen() {
     setShowFilters(false);
   };
 
+  const background = useThemeColor({}, 'background');
+  const surface = useThemeColor({ light: '#ffffff', dark: '#1f1f1f' }, 'background');
+  const text = useThemeColor({}, 'text');
+  const muted = useThemeColor({ light: TEXT_MUTED, dark: '#c7c7c7' }, 'text');
+  const brand = useThemeColor({}, 'tint');
+  const tagBackground = useThemeColor({ light: '#f8fafc', dark: '#252525' }, 'background');
+  const tagBorder = useThemeColor({ light: '#f1f5f9', dark: '#2f2f2f' }, 'background');
+  const tagAltBackground = useThemeColor({ light: '#fff8ee', dark: '#2a1f12' }, 'background');
+  const shadowColor = useThemeColor({ light: '#000000', dark: '#000000' }, 'background');
+
+  const palette = useMemo(
+    () => ({
+      background,
+      surface,
+      text,
+      muted,
+      brand,
+      tagBackground,
+      tagBorder,
+      tagAltBackground,
+      shadowColor,
+    }),
+    [background, surface, text, muted, brand, tagBackground, tagBorder, tagAltBackground, shadowColor],
+  );
+
+  const styles = useMemo(
+    () =>
+      createStyles({
+        background: palette.background,
+        surface: palette.surface,
+        text: palette.text,
+        muted: palette.muted,
+        brand: palette.brand,
+        tagBackground: palette.tagBackground,
+        tagBorder: palette.tagBorder,
+        tagAltBackground: palette.tagAltBackground,
+        shadowColor: palette.shadowColor,
+      }),
+    [palette],
+  );
+
   return (
-    <SafeAreaView style={styles.area}>
-      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        <Text style={styles.title}>Explore Jobs</Text>
+    <ThemedView style={styles.container}>
+      <Header title="Job Centre" />
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <ThemedText style={styles.title}>Explore Jobs</ThemedText>
 
-        <SearchBar onFilterPress={handleFilterPress}/>
+        <SearchBar onFilterPress={handleFilterPress} />
 
-        <Text style={styles.section}>Browse by category</Text>
+        <ThemedText style={styles.section}>Browse by category</ThemedText>
         <BrowseCategories onPress={handleCategory} />
 
         <SectionHeader title="Top Company" onPress={() => {}} />
@@ -62,35 +108,32 @@ export default function JobCenterScreen() {
           <View style={styles.recommendRow}>
             <View style={styles.companyInfo}>
               <View style={styles.logoContainer}>
-                <Image 
-                  source={require('./../../assets/images/netflix.png')}
-                  style={styles.logo}
-                />
+                <Image source={require('@/assets/images/netflix.png')} style={styles.logo} />
               </View>
               <View style={styles.jobDetails}>
-                <Text style={styles.company}>Netflix</Text>
-                <Text style={styles.jobTitle}>Game Developer</Text>
-                <Text style={styles.salary}>$1000-$1500/Month</Text>
+                <ThemedText style={styles.company}>Netflix</ThemedText>
+                <ThemedText style={styles.jobTitle}>Game Developer</ThemedText>
+                <ThemedText style={styles.salary}>$1000-$1500/Month</ThemedText>
               </View>
             </View>
             <TouchableOpacity style={styles.bookmarkBtn}>
-              <Ionicons name="bookmark-outline" size={24} color={BRAND} />
+              <Ionicons name="bookmark-outline" size={24} color={palette.brand} />
             </TouchableOpacity>
           </View>
           <View style={styles.tagsRow}>
             <View style={styles.tag}>
-              <Text style={styles.tagText}>Fulltime</Text>
+              <ThemedText style={styles.tagText}>Fulltime</ThemedText>
             </View>
             <View style={styles.tag}>
-              <Text style={styles.tagText}>Remote</Text>
+              <ThemedText style={styles.tagText}>Remote</ThemedText>
             </View>
             <View style={styles.timeTag}>
-              <Ionicons name="time-outline" size={12} color={TEXT_MUTED} />
-              <Text style={styles.timeText}>2 days ago</Text>
+              <Ionicons name="time-outline" size={12} color={palette.muted} />
+              <ThemedText style={styles.timeText}>2 days ago</ThemedText>
             </View>
           </View>
           <TouchableOpacity style={styles.applyButton}>
-            <Text style={styles.applyText}>Apply now</Text>
+            <ThemedText style={styles.applyText}>Apply now</ThemedText>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -100,141 +143,148 @@ export default function JobCenterScreen() {
         onApply={handleApplyFilters}
         initialFilters={activeFilters}
       />
-    </SafeAreaView>
+    </ThemedView>
   );
 }
 
-const styles = StyleSheet.create({
-  area: { 
-    flex: 1, 
-    backgroundColor: BRAND_BG, 
-    paddingHorizontal: 20, 
-    paddingBottom: -33 
-  },
-  scroll: { 
-    flexGrow: 1,
-  },
-  title: { 
-    fontSize: 28, 
-    fontWeight: 'bold', 
-    textAlign: 'center', 
-    paddingBottom: 6, 
-    marginTop: 6,
-    color: '#1f2937',
-  },
-  section: { 
-    fontSize: 20, 
-    fontWeight: '700', 
-    marginTop: 24, 
-    marginBottom: 16,
-    color: '#1f2937',
-  },
-  recommendTile: {
-    backgroundColor: 'white',
-    minHeight: 200,
-    borderRadius: 20,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
+const createStyles = (palette: {
+  background: string;
+  surface: string;
+  text: string;
+  muted: string;
+  brand: string;
+  tagBackground: string;
+  tagBorder: string;
+  tagAltBackground: string;
+  shadowColor: string;
+}) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: palette.background,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 8,
-    marginBottom: 16,
-  },
-  recommendRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-  },
-  companyInfo: {
-    flexDirection: 'row',
-    flex: 1,
-  },
-  logoContainer: {
-    padding: 12,
-    borderRadius: 12,
-    backgroundColor: CARD_BG,
-    height: 60,
-    width: 60,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  logo: {
-    maxHeight: 30,
-    maxWidth: 30,
-  },
-  jobDetails: {
-    flexDirection: 'column',
-    flex: 1,
-  },
-  company: {
-    color: TEXT_MUTED,
-    fontWeight: '600',
-    fontSize: 14,
-    marginBottom: 4,
-  },
-  jobTitle: {
-    paddingTop: 4,
-    fontWeight: 'bold',
-    fontSize: 18,
-    paddingBottom: 4,
-    color: '#1f2937',
-  },
-  salary: {
-    color: BRAND,
-    fontWeight: '600',
-    fontSize: 14,
-  },
-  bookmarkBtn: {
-    padding: 4,
-  },
-  tagsRow: {
-    flexDirection: 'row',
-    marginTop: 16,
-    marginBottom: 20,
-    gap: 8,
-  },
-  tag: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-    backgroundColor: '#f8fafc',
-    borderWidth: 1,
-    borderColor: '#f1f5f9',
-  },
-  timeTag: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-    backgroundColor: '#fff8ee',
-    gap: 4,
-  },
-  tagText: {
-    fontSize: 12,
-    color: TEXT_MUTED,
-    fontWeight: '500',
-  },
-  timeText: {
-    fontSize: 12,
-    color: BRAND,
-    fontWeight: '500',
-  },
-  applyButton: {
-    backgroundColor: BRAND,
-    paddingVertical: 12,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  applyText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-});
+    scrollContent: {
+      paddingHorizontal: 20,
+      paddingVertical: 20,
+      gap: 24,
+    },
+    title: {
+      fontSize: 28,
+      fontWeight: '700',
+      textAlign: 'center',
+      paddingBottom: 6,
+      marginTop: 6,
+      paddingTop: 10,
+      color: palette.text,
+    },
+    section: {
+      fontSize: 20,
+      fontWeight: '700',
+      marginTop: 12,
+      marginBottom: 12,
+      color: palette.text,
+    },
+    recommendTile: {
+      backgroundColor: palette.surface,
+      borderRadius: 20,
+      padding: 20,
+      shadowColor: palette.shadowColor,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.1,
+      shadowRadius: 12,
+      elevation: 8,
+      gap: 20,
+    },
+    recommendRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+      gap: 12,
+    },
+    companyInfo: {
+      flexDirection: 'row',
+      flex: 1,
+      gap: 12,
+    },
+    logoContainer: {
+      padding: 12,
+      borderRadius: 12,
+      backgroundColor: CARD_BG,
+      height: 60,
+      width: 60,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    logo: {
+      maxHeight: 30,
+      maxWidth: 30,
+      resizeMode: 'contain',
+    },
+    jobDetails: {
+      flexDirection: 'column',
+      flex: 1,
+      gap: 4,
+    },
+    company: {
+      color: palette.muted,
+      fontWeight: '600',
+      fontSize: 14,
+    },
+    jobTitle: {
+      fontWeight: '700',
+      fontSize: 18,
+      color: palette.text,
+    },
+    salary: {
+      color: palette.brand,
+      fontWeight: '600',
+      fontSize: 14,
+    },
+    bookmarkBtn: {
+      padding: 4,
+    },
+    tagsRow: {
+      flexDirection: 'row',
+      gap: 8,
+      flexWrap: 'wrap',
+    },
+    tag: {
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 8,
+      backgroundColor: palette.tagBackground,
+      borderWidth: 1,
+      borderColor: palette.tagBorder,
+    },
+    timeTag: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 8,
+      backgroundColor: palette.tagAltBackground,
+      gap: 4,
+    },
+    tagText: {
+      fontSize: 12,
+      color: palette.muted,
+      fontWeight: '500',
+    },
+    timeText: {
+      fontSize: 12,
+      color: palette.brand,
+      fontWeight: '500',
+    },
+    applyButton: {
+      backgroundColor: palette.brand,
+      paddingVertical: 12,
+      borderRadius: 12,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    applyText: {
+      color: '#ffffff',
+      fontSize: 16,
+      fontWeight: '700',
+    },
+  });

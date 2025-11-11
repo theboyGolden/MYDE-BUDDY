@@ -1,5 +1,5 @@
 import { MaterialIcons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { type Href, useRouter } from 'expo-router';
 import React from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 
@@ -12,18 +12,25 @@ export function CareerPathwaySection() {
   const router = useRouter();
   const iconColor = useThemeColor({}, 'tint');
 
-  const pathways = [
+  const pathways: Array<{
+    title: string;
+    imageSource: any;
+    href: Href;
+  }> = [
     {
       title: 'Job Opportunities',
       imageSource: require('@/assets/images/job-opportunities.png'),
+      href: '/job-centre',
     },
     {
       title: 'Education Opportunities',
       imageSource: require('@/assets/images/education-opportunities.png'),
+      href: '/education-centre',
     },
     {
       title: 'Entrepreneurship',
       imageSource: require('@/assets/images/entrepreneurship.png'),
+      href: '/entrepreneurship-centre',
     },
   ];
 
@@ -61,7 +68,11 @@ export function CareerPathwaySection() {
       <View style={styles.cardsContainer}>
         {pathways.map((pathway, index) => (
           <View key={index} style={styles.cardWrapper}>
-            <CareerPathwayCard title={pathway.title} imageSource={pathway.imageSource} />
+            <CareerPathwayCard
+              title={pathway.title}
+              imageSource={pathway.imageSource}
+              onPress={() => router.push(pathway.href)}
+            />
           </View>
         ))}
       </View>

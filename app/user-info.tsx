@@ -22,6 +22,8 @@ import { Colors } from "@/constants/theme";
 import { useTheme } from "@/contexts/theme-context";
 import { UpdateUserImageSheet } from "../components/update-user-image-sheet";
 
+type ThemePalette = typeof Colors.light;
+
 const DEFAULT_AVATAR = "https://cdn-icons-png.flaticon.com/512/9131/9131529.png";
 
 type FormState = {
@@ -97,14 +99,17 @@ export default function UserInfo() {
   const params = useLocalSearchParams();
   const { colorScheme, toggleTheme } = useTheme();
 
-  const palette = Colors[colorScheme];
+  const palette = useMemo<ThemePalette>(() => Colors[colorScheme], [colorScheme]);
 
   const [form, setForm] = useState<FormState>(() => buildInitialFormState(params));
   const [showImageSheet, setShowImageSheet] = useState(false);
   const [dobModalVisible, setDobModalVisible] = useState(false);
   const [tempDob, setTempDob] = useState<Date>(parseDobString(buildInitialFormState(params).dob) ?? new Date());
 
-  const { styles, placeholderColor } = useMemo(() => createStyles(colorScheme), [colorScheme]);
+  const { styles, placeholderColor } = useMemo(
+    () => createStyles(colorScheme, palette),
+    [colorScheme, palette]
+  );
 
   useEffect(() => {
     setForm(buildInitialFormState(params));
@@ -410,16 +415,17 @@ export default function UserInfo() {
   );
 }
 
-const createStyles = (colorScheme: "light" | "dark") => {
-  const palette = Colors[colorScheme];
-  const accent = palette.tint;
+const createStyles = (colorScheme: "light" | "dark", palette: ThemePalette) => {
+  const accent = colorScheme === "dark" ? "#F4A300" : palette.tint;
   const borderColor = colorScheme === "dark" ? "#2F3133" : "#F4A300";
   const surface = colorScheme === "dark" ? "#1F2022" : "#FFFCF5";
   const secondaryText = colorScheme === "dark" ? "#D0D4DA" : "#333";
   const saveTextColor = colorScheme === "dark" ? "#151718" : "#fff";
   const placeholderColor = colorScheme === "dark" ? "#8A8F98" : "#A1A5AD";
+  const backButtonBackground = colorScheme === "dark" ? "#2A2C31" : "#F2F3F7";
+  const modalDividerColor = colorScheme === "dark" ? "#33363B" : "#E4E7EC";
 
-const styles = StyleSheet.create({
+  const styles = StyleSheet.create({
     safeArea: {
       flex: 1,
       backgroundColor: palette.background,
@@ -427,77 +433,77 @@ const styles = StyleSheet.create({
     scrollView: {
       flex: 1,
     },
-  container: {
-    padding: 20,
+    container: {
+      padding: 20,
       backgroundColor: palette.background,
-    flexGrow: 1,
-  },
+      flexGrow: 1,
+    },
     topBar: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
       marginBottom: 16,
     },
-  backButton: {
+    backButton: {
       width: 36,
       height: 36,
       borderRadius: 18,
       alignItems: "center",
       justifyContent: "center",
-      backgroundColor: colorScheme === "dark" ? "#2A2C31" : "#F2F3F7",
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: "600",
+      backgroundColor: backButtonBackground,
+    },
+    title: {
+      fontSize: 18,
+      fontWeight: "600",
       color: palette.text,
       flex: 1,
-    textAlign: "center",
-  },
-  imageContainer: {
-    alignItems: "center",
-    justifyContent: "center",
-    marginVertical: 10,
-  },
-  avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-  },
-  editIcon: {
-    position: "absolute",
-    bottom: 0,
-    right: 140,
+      textAlign: "center",
+    },
+    imageContainer: {
+      alignItems: "center",
+      justifyContent: "center",
+      marginVertical: 10,
+    },
+    avatar: {
+      width: 80,
+      height: 80,
+      borderRadius: 40,
+    },
+    editIcon: {
+      position: "absolute",
+      bottom: 0,
+      right: 140,
       backgroundColor: accent,
-    padding: 5,
-    borderRadius: 20,
-  },
-  form: {
-    marginTop: 20,
-  },
-  label: {
-    fontSize: 13,
-    fontWeight: "500",
+      padding: 5,
+      borderRadius: 20,
+    },
+    form: {
+      marginTop: 20,
+    },
+    label: {
+      fontSize: 13,
+      fontWeight: "500",
       color: secondaryText,
-    marginBottom: 6,
-    marginTop: 10,
-  },
-  input: {
+      marginBottom: 6,
+      marginTop: 10,
+    },
+    input: {
       backgroundColor: surface,
-    borderWidth: 1,
+      borderWidth: 1,
       borderColor,
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 14,
+      borderRadius: 12,
+      paddingHorizontal: 12,
+      paddingVertical: 10,
+      fontSize: 14,
       color: palette.text,
-  },
-  inputWithIcon: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderWidth: 1,
+    },
+    inputWithIcon: {
+      flexDirection: "row",
+      alignItems: "center",
+      borderWidth: 1,
       borderColor,
-    borderRadius: 12,
-    paddingHorizontal: 12,
+      borderRadius: 12,
+      paddingHorizontal: 12,
       backgroundColor: surface,
       minHeight: 48,
     },
@@ -508,45 +514,45 @@ const styles = StyleSheet.create({
     },
     datePlaceholder: {
       color: placeholderColor,
-  },
-  genderContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 8,
-  },
-  genderOption: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
+    },
+    genderContainer: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      marginTop: 8,
+    },
+    genderOption: {
+      flex: 1,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      borderWidth: 1,
       borderColor,
-    borderRadius: 25,
-    paddingVertical: 10,
-    marginHorizontal: 4,
+      borderRadius: 25,
+      paddingVertical: 10,
+      marginHorizontal: 4,
       backgroundColor: surface,
-  },
-  genderActive: {
+    },
+    genderActive: {
       backgroundColor: accent,
-  },
-  genderText: {
+    },
+    genderText: {
       color: palette.text,
-    fontWeight: "500",
-  },
-  genderTextActive: {
+      fontWeight: "500",
+    },
+    genderTextActive: {
       color: saveTextColor,
-  },
-  saveButton: {
+    },
+    saveButton: {
       backgroundColor: accent,
-    borderRadius: 30,
-    paddingVertical: 14,
-    marginTop: 20,
-    alignItems: "center",
-  },
-  saveText: {
+      borderRadius: 30,
+      paddingVertical: 14,
+      marginTop: 20,
+      alignItems: "center",
+    },
+    saveText: {
       color: saveTextColor,
-    fontWeight: "600",
-  },
+      fontWeight: "600",
+    },
     locationInput: {
       height: 80,
       textAlignVertical: "top",
@@ -574,7 +580,7 @@ const styles = StyleSheet.create({
       paddingHorizontal: 20,
       paddingVertical: 12,
       borderBottomWidth: StyleSheet.hairlineWidth,
-      borderBottomColor: colorScheme === "dark" ? "#33363B" : "#E4E7EC",
+      borderBottomColor: modalDividerColor,
     },
     modalTitle: {
       fontSize: 16,
@@ -605,3 +611,4 @@ const styles = StyleSheet.create({
 
   return { styles, placeholderColor };
 };
+

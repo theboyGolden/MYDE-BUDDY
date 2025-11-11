@@ -74,14 +74,19 @@ const EDUCATION_ITEMS: ReadonlyArray<EducationItem> = [
   },
 ] as const;
 
+type ThemePalette = typeof Colors.light;
+
 export default function ProfileScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const { colorScheme, toggleTheme } = useTheme();
-  const palette = useMemo(() => Colors[colorScheme], [colorScheme]);
-  const accent = useMemo(() => (colorScheme === "dark" ? "#F4A300" : palette.tint), [colorScheme, palette.tint]);
+  const palette = useMemo<ThemePalette>(() => Colors[colorScheme], [colorScheme]);
+  const accent = useMemo(
+    () => (colorScheme === "dark" ? "#F4A300" : palette.tint),
+    [colorScheme, palette.tint]
+  );
   const iconOnAccent = colorScheme === "dark" ? "#151718" : "#fff";
-  const styles = useMemo(() => createStyles(colorScheme, accent), [colorScheme, accent]);
+  const styles = useMemo(() => createStyles(colorScheme, accent, palette), [colorScheme, accent, palette]);
 
   const user = useMemo(() => {
     const mergedUser = { ...DEFAULT_USER };
@@ -280,8 +285,7 @@ const createShadow = (colorScheme: "light" | "dark") => {
   };
 };
 
-const createStyles = (colorScheme: "light" | "dark", accent: string) => {
-  const palette = Colors[colorScheme];
+const createStyles = (colorScheme: "light" | "dark", accent: string, palette: ThemePalette) => {
   const secondaryText = colorScheme === "dark" ? "#C4C8CF" : "#666";
   const tertiaryText = colorScheme === "dark" ? "#A1A5AD" : "#777";
   const neutralSurface = colorScheme === "dark" ? "#2A2C31" : "#E9EBEE";
@@ -290,7 +294,7 @@ const createStyles = (colorScheme: "light" | "dark", accent: string) => {
 
   return StyleSheet.create({
     safeArea: { flex: 1, backgroundColor: palette.background },
-    container: { flex: 1 },
+    container: { flex: 1, backgroundColor: palette.background },
     contentContainer: { paddingBottom: 40 },
     topBar: {
       marginTop: 8,

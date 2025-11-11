@@ -7,7 +7,7 @@ import { ThemedView } from '@/components/themed-view';
 export default function EducationCentreScreen() {
   return (
     <View style={styles.container}>
-      <Header title="Education Centre" />
+      <Header title="Education Centre" showBackButton />
       <ScrollView style={styles.scrollView}>
         <ThemedView style={styles.content}>
           <ThemedText type="title">Education Centre</ThemedText>
