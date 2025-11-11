@@ -19,7 +19,7 @@ const initialData: Job[] = [
   {
     id: '1',
     company: 'Spotify USA Inc',
-    companyLogo: { uri: 'https://i.imgur.com/0Z8FQZC.png' },
+    companyLogo: { uri: 'https://storage.googleapis.com/pr-newsroom-wp/1/2023/05/Spotify_Primary_Logo_RGB_Green.png' },
     title: 'Sr. UX Designer',
     salary: '$1100 - $12,000/Month',
     type: 'Fulltime',
@@ -29,7 +29,7 @@ const initialData: Job[] = [
   {
     id: '2',
     company: 'Airbnb',
-    companyLogo: { uri: 'https://i.imgur.com/1hZQe6W.png' },
+    companyLogo: { uri: 'https://i.pinimg.com/736x/64/1f/36/641f3605eb8e2d6b17b817431b20fa9b.jpg' },
     title: 'Sr. Front-end Dev',
     salary: '$1100 - $12,000/Month',
     type: 'Fulltime',

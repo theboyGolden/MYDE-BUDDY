@@ -1,11 +1,14 @@
 // src/components/jobCenter/searchBar.tsx
-import { GRADIENT_END, GRADIENT_START, TEXT_MUTED, WHITE } from '@/constants/colors';
+import { TEXT_MUTED, WHITE } from '@/constants/colors';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
 import { StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 
-export default function SearchBar() {
+type Props = {
+  onFilterPress?: () => void;
+};
+
+export default function SearchBar({ onFilterPress }: Props) {
   return (
     <View style={styles.container}>
       <View style={styles.searchContainer}>
@@ -16,15 +19,10 @@ export default function SearchBar() {
           style={styles.input}
         />
       </View>
-      <TouchableOpacity style={styles.filterButton}>
-        <LinearGradient
-          colors={[GRADIENT_START, GRADIENT_END]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={styles.filterGradient}
-        >
+      <TouchableOpacity style={styles.filterButton} onPress={onFilterPress}>
+        <View style={styles.filterGradient}>
           <Ionicons name="options-outline" size={20} color={WHITE} />
-        </LinearGradient>
+        </View>
       </TouchableOpacity>
     </View>
   );
@@ -77,5 +75,6 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: '#e0971d', // Using BRAND color directly
   },
 });

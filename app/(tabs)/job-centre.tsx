@@ -1,12 +1,13 @@
 // src/app/(tabs)/JobCenterScreen.tsx
 import BrowseCategories from '@/components/jobCenter/browseCategories';
+import FilterSheet, { FilterOptions } from '@/components/jobCenter/modals/FilterSheet';
 import RemoteJobs from '@/components/jobCenter/remoteJobs';
 import SearchBar from '@/components/jobCenter/searchBar';
 import SectionHeader from '@/components/jobCenter/sectionHeader';
 import TopCompanies from '@/components/jobCenter/topCompanies';
 import { BRAND, BRAND_BG, CARD_BG, TEXT_MUTED } from '@/constants/colors';
 import { Ionicons } from '@expo/vector-icons';
-import React from 'react';
+import React, { useState } from 'react';
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -15,12 +16,37 @@ export default function JobCenterScreen() {
     console.log('Category pressed:', id);
   };
 
+  const [showFilters, setShowFilters] = useState(false);
+  const [activeFilters, setActiveFilters] = useState<FilterOptions>({
+    category: undefined,
+    jobType: undefined,
+    location: undefined,
+    salaryUnit: 'Monthly',
+    salaryMin: '',
+    salaryMax: '',
+  });
+
+  const handleFilterPress = () => {
+    setShowFilters(true);
+  };
+
+  const handleApplyFilters = (filters: FilterOptions) => {
+    setActiveFilters(filters);
+    setShowFilters(false);
+    console.log('Applied filters:', filters);
+    // Here you would typically filter your job data
+  };
+
+  const handleCloseFilters = () => {
+    setShowFilters(false);
+  };
+
   return (
     <SafeAreaView style={styles.area}>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <Text style={styles.title}>Explore Jobs</Text>
 
-        <SearchBar />
+        <SearchBar onFilterPress={handleFilterPress}/>
 
         <Text style={styles.section}>Browse by category</Text>
         <BrowseCategories onPress={handleCategory} />
@@ -68,6 +94,12 @@ export default function JobCenterScreen() {
           </TouchableOpacity>
         </View>
       </ScrollView>
+      <FilterSheet
+        visible={showFilters}
+        onClose={handleCloseFilters}
+        onApply={handleApplyFilters}
+        initialFilters={activeFilters}
+      />
     </SafeAreaView>
   );
 }
