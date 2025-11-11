@@ -1,6 +1,7 @@
 // src/components/jobCenter/browseCategories.tsx
-import { BRAND, CARD_BG, TEXT_MUTED } from '@/constants/colors';
+import { GRADIENT_END, GRADIENT_START, TEXT_MUTED, WHITE } from '@/constants/colors';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
@@ -22,16 +23,21 @@ type Props = { onPress?: (id: string) => void; };
 export default function BrowseCategories({ onPress }: Props) {
   return (
     <View style={styles.grid}>
-      {CATEGORIES.map(c => (
+      {CATEGORIES.map((c, index) => (
         <View key={c.id} style={styles.item}>
           <TouchableOpacity
             activeOpacity={0.85}
             onPress={() => onPress?.(c.id)}
             style={styles.card}
           >
-            <View style={styles.brandDot}>
-              <Ionicons name={c.icon} size={18} color="#fff" />
-            </View>
+            <LinearGradient
+              colors={[GRADIENT_START, GRADIENT_END]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.gradient}
+            >
+              <Ionicons name={c.icon} size={24} color={WHITE} />
+            </LinearGradient>
           </TouchableOpacity>
           <Text style={styles.label}>{c.label}</Text>
         </View>
@@ -45,19 +51,34 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
-  item: { width: '23%', alignItems: 'center' },
+  item: { 
+    width: '18%', 
+    alignItems: 'center' 
+  },
   card: {
     width: '100%',
     aspectRatio: 1,
-    backgroundColor: CARD_BG,
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  gradient: {
+    flex: 1,
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  brandDot: {
-    height: 40, width: 40, borderRadius: 20,
-    alignItems: 'center', justifyContent: 'center',
-    backgroundColor: BRAND,
+  label: { 
+    fontSize: 12, 
+    color: TEXT_MUTED, 
+    marginTop: 8, 
+    textAlign: 'center',
+    fontWeight: '500',
   },
-  label: { fontSize: 12, color: TEXT_MUTED, marginTop: 8, textAlign: 'center' },
 });

@@ -17,7 +17,7 @@ export default function JobCenterScreen() {
 
   return (
     <SafeAreaView style={styles.area}>
-      <ScrollView contentContainerStyle={styles.scroll}>
+      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <Text style={styles.title}>Explore Jobs</Text>
 
         <SearchBar />
@@ -34,33 +34,37 @@ export default function JobCenterScreen() {
         <SectionHeader title="Recommendation jobs" />
         <View style={styles.recommendTile}>
           <View style={styles.recommendRow}>
-            <View style={{flexDirection:'row'}}>
-              <View style={styles.rowElement1}>
-                <Image source={require('./../../assets/images/netflix.png')}
-                style={styles.logo}
+            <View style={styles.companyInfo}>
+              <View style={styles.logoContainer}>
+                <Image 
+                  source={require('./../../assets/images/netflix.png')}
+                  style={styles.logo}
                 />
               </View>
-              <View style={styles.rowElement2}>
-                <Text style={styles.sub}>Netflix</Text>
-                <Text style={styles.jobDescription}>Game Developer</Text>
-                <Text style={styles.sub}>$1000-$1500/Month</Text>
+              <View style={styles.jobDetails}>
+                <Text style={styles.company}>Netflix</Text>
+                <Text style={styles.jobTitle}>Game Developer</Text>
+                <Text style={styles.salary}>$1000-$1500/Month</Text>
               </View>
             </View>
-            <Ionicons name="bookmark-outline" size={24} color={BRAND} />
+            <TouchableOpacity style={styles.bookmarkBtn}>
+              <Ionicons name="bookmark-outline" size={24} color={BRAND} />
+            </TouchableOpacity>
           </View>
-          <View style={styles.typeRow}>
-            <View style={styles.type}>
-              <Text>Fulltime</Text>
+          <View style={styles.tagsRow}>
+            <View style={styles.tag}>
+              <Text style={styles.tagText}>Fulltime</Text>
             </View>
-            <View style={styles.type}>
-              <Text>Remote</Text>
+            <View style={styles.tag}>
+              <Text style={styles.tagText}>Remote</Text>
             </View>
-            <View style={styles.type}>
-              <Text>2 days ago</Text>
+            <View style={styles.timeTag}>
+              <Ionicons name="time-outline" size={12} color={TEXT_MUTED} />
+              <Text style={styles.timeText}>2 days ago</Text>
             </View>
           </View>
-          <TouchableOpacity>
-            <Text>Apply now</Text>
+          <TouchableOpacity style={styles.applyButton}>
+            <Text style={styles.applyText}>Apply now</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -69,57 +73,136 @@ export default function JobCenterScreen() {
 }
 
 const styles = StyleSheet.create({
-  area: { flex: 1, backgroundColor: BRAND_BG, paddingHorizontal: 20, paddingBottom:-33 },
-  scroll: { flexGrow: 1,},
-  title: { fontSize: 22, fontWeight: 'bold', textAlign: 'center', paddingBottom: 6, marginTop: 6 },
-  section: { fontSize: 18, fontWeight: '700', marginTop: 12, marginBottom: 8 },
-  recommendTile:{
-    flex:1,
-    backgroundColor:'white',
-    minHeight:200,
-    borderRadius:20,
-    padding:15
+  area: { 
+    flex: 1, 
+    backgroundColor: BRAND_BG, 
+    paddingHorizontal: 20, 
+    paddingBottom: -33 
   },
-  recommendRow:{
-    flexDirection:'row',
-    justifyContent:'space-between'
+  scroll: { 
+    flexGrow: 1,
   },
-  rowElement1:{
-    padding:5,
-    borderRadius:10,
-    backgroundColor:CARD_BG,
-    height:50,
-    width:50,
-    alignContent:'center',
-    alignItems:'center',
-    justifyContent:'center'
+  title: { 
+    fontSize: 28, 
+    fontWeight: 'bold', 
+    textAlign: 'center', 
+    paddingBottom: 6, 
+    marginTop: 6,
+    color: '#1f2937',
   },
-  rowElement2:{
-    flexDirection:'column',
-    paddingHorizontal:10
+  section: { 
+    fontSize: 20, 
+    fontWeight: '700', 
+    marginTop: 24, 
+    marginBottom: 16,
+    color: '#1f2937',
   },
-  logo:{
-    maxHeight:30,
-    maxWidth:30
+  recommendTile: {
+    backgroundColor: 'white',
+    minHeight: 200,
+    borderRadius: 20,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 8,
+    marginBottom: 16,
   },
-  jobDescription:{
-    paddingTop:10,
-    fontWeight:'bold',
-    fontSize:18,
-    paddingBottom:5
+  recommendRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
   },
-  sub:{
-    color:TEXT_MUTED,
-    fontWeight:'bold'
+  companyInfo: {
+    flexDirection: 'row',
+    flex: 1,
   },
-  typeRow:{
-    flexDirection:'row'
+  logoContainer: {
+    padding: 12,
+    borderRadius: 12,
+    backgroundColor: CARD_BG,
+    height: 60,
+    width: 60,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
   },
-  type:{
-    padding:7,
-    borderRadius:5,
-    backgroundColor:'#f0ebebff',
-    marginRight:10,
-    marginVertical:20
-  }
+  logo: {
+    maxHeight: 30,
+    maxWidth: 30,
+  },
+  jobDetails: {
+    flexDirection: 'column',
+    flex: 1,
+  },
+  company: {
+    color: TEXT_MUTED,
+    fontWeight: '600',
+    fontSize: 14,
+    marginBottom: 4,
+  },
+  jobTitle: {
+    paddingTop: 4,
+    fontWeight: 'bold',
+    fontSize: 18,
+    paddingBottom: 4,
+    color: '#1f2937',
+  },
+  salary: {
+    color: BRAND,
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  bookmarkBtn: {
+    padding: 4,
+  },
+  tagsRow: {
+    flexDirection: 'row',
+    marginTop: 16,
+    marginBottom: 20,
+    gap: 8,
+  },
+  tag: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    backgroundColor: '#f8fafc',
+    borderWidth: 1,
+    borderColor: '#f1f5f9',
+  },
+  timeTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    backgroundColor: '#fff8ee',
+    gap: 4,
+  },
+  tagText: {
+    fontSize: 12,
+    color: TEXT_MUTED,
+    fontWeight: '500',
+  },
+  timeText: {
+    fontSize: 12,
+    color: BRAND,
+    fontWeight: '500',
+  },
+  applyButton: {
+    backgroundColor: BRAND,
+    paddingVertical: 12,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  applyText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
 });

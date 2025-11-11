@@ -1,8 +1,8 @@
 // src/components/jobCenter/remoteJobs.tsx
 import { BRAND, TEXT_MUTED } from '@/constants/colors';
-import { Ionicons } from '@expo/vector-icons';
-import React from 'react';
-import { FlatList, Image, StyleSheet, Text, View } from 'react-native';
+import React, { useState } from 'react';
+import { FlatList, StyleSheet } from 'react-native';
+import JobCard from './JobCard';
 
 type Job = {
   id: string;
@@ -15,7 +15,7 @@ type Job = {
   bookmarked?: boolean;
 };
 
-const DATA: Job[] = [
+const initialData: Job[] = [
   {
     id: '1',
     company: 'Spotify USA Inc',
@@ -39,49 +39,53 @@ const DATA: Job[] = [
 ];
 
 export default function RemoteJobs() {
+  const [jobs, setJobs] = useState<Job[]>(initialData);
+
+  const handleBookmark = (jobId: string) => {
+    setJobs(prevJobs => 
+      prevJobs.map(job => 
+        job.id === jobId 
+          ? { ...job, bookmarked: !job.bookmarked }
+          : job
+      )
+    );
+    console.log('Bookmark toggled for job:', jobId);
+  };
+
+  const handleApply = (jobId: string) => {
+    console.log('Apply pressed for job:', jobId);
+    // Add your apply logic here
+  };
+
   return (
     <FlatList
-      data={DATA}
+      data={jobs}
       keyExtractor={i => i.id}
       horizontal
       showsHorizontalScrollIndicator={false}
-      contentContainerStyle={{ gap: 12 }}
+      contentContainerStyle={styles.container}
       renderItem={({ item }) => (
-        <View style={styles.card}>
-          <View style={styles.header}>
-            <View style={styles.logoWrap}>
-              <Image source={item.companyLogo} style={styles.logo} />
-            </View>
-            <Ionicons
-              name={item.bookmarked ? 'bookmark' : 'bookmark-outline'}
-              size={18}
-              color={item.bookmarked ? BRAND : TEXT_MUTED}
-            />
-          </View>
-
-          <Text style={styles.company} numberOfLines={1}>{item.company}</Text>
-          <Text style={styles.title} numberOfLines={1}>{item.title}</Text>
-          <Text style={styles.salary}>{item.salary}</Text>
-
-          <View style={styles.tagsRow}>
-            <View style={styles.tag}>
-              <Text style={styles.tagText}>{item.type}</Text>
-            </View>
-          </View>
-
-          <View style={styles.footer}>
-            <Text style={styles.posted}>{item.posted}</Text>
-            <View style={styles.apply}>
-              <Text style={styles.applyText}>Apply</Text>
-            </View>
-          </View>
-        </View>
+        <JobCard 
+          job={item} 
+          onBookmark={handleBookmark}
+          onApply={handleApply}
+          style={styles.horizontalCard}
+        />
       )}
     />
   );
 }
 
 const styles = StyleSheet.create({
+  container: { 
+    gap: 12,
+    paddingHorizontal: 2, // Add some padding to prevent cards from being cut off
+  },
+  horizontalCard: {
+    width: 280,
+    marginRight: 12,
+  },
+  // Keeping the old styles for reference, but they're not used anymore
   card: {
     width: 240,
     padding: 14,

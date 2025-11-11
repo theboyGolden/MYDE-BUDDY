@@ -1,5 +1,6 @@
 // src/components/jobCenter/sectionHeader.tsx
-import { TEXT_MUTED } from '@/constants/colors';
+import { BRAND } from '@/constants/colors';
+import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
@@ -12,8 +13,9 @@ export default function SectionHeader({
     <View style={styles.row}>
       <Text style={styles.title}>{title}</Text>
       {onPress && (
-        <TouchableOpacity onPress={onPress}>
+        <TouchableOpacity style={styles.linkContainer} onPress={onPress}>
           <Text style={styles.link}>{actionText}</Text>
+          <Ionicons name="chevron-forward" size={16} color={BRAND} />
         </TouchableOpacity>
       )}
     </View>
@@ -21,7 +23,26 @@ export default function SectionHeader({
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginTop: 14, marginBottom: 8 },
-  title: { fontSize: 20, fontWeight: '700' },
-  link: { fontSize: 14, fontWeight: '600', color: TEXT_MUTED },
+  row: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'center', 
+    marginTop: 24, 
+    marginBottom: 12 
+  },
+  title: { 
+    fontSize: 22, 
+    fontWeight: 'bold',
+    color: '#1f2937',
+  },
+  linkContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  link: { 
+    fontSize: 14, 
+    fontWeight: '600', 
+    color: BRAND,
+  },
 });
