@@ -1,7 +1,7 @@
 // src/components/jobCenter/topCompanies.tsx
 import { TEXT_MUTED } from '@/constants/colors';
 import React from 'react';
-import { FlatList, Image, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 type Company = { id: string; name: string; jobsOpen: number; logo: any; };
 
@@ -9,6 +9,10 @@ const DATA: Company[] = [
   { id: 'spotify', name: 'Spotify USA Inc', jobsOpen: 9,  logo: { uri: 'https://i.imgur.com/0Z8FQZC.png' } },
   { id: 'valve',   name: 'Valve Corporation', jobsOpen: 11, logo: { uri: 'https://i.imgur.com/3VgL5OQ.png' } },
 ];
+
+const handlePress = () => {
+    console.log("hii")
+};
 
 export default function TopCompanies() {
   return (
@@ -19,13 +23,13 @@ export default function TopCompanies() {
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={{ gap: 12 }}
       renderItem={({ item }) => (
-        <View style={styles.card}>
+        <TouchableOpacity style={styles.card} onPress={handlePress}>
           <View style={styles.logoWrap}>
             <Image source={item.logo} style={styles.logo} />
           </View>
           <Text style={styles.name} numberOfLines={1}>{item.name}</Text>
           <Text style={styles.meta}>{item.jobsOpen} Jobs open</Text>
-        </View>
+        </TouchableOpacity>
       )}
     />
   );
