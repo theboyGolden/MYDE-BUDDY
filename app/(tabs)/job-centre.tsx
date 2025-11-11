@@ -1,172 +1,45 @@
-import React, { useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+// src/app/(tabs)/JobCenterScreen.tsx
+import BrowseCategories from '@/components/jobCenter/browseCategories';
+import RemoteJobs from '@/components/jobCenter/remoteJobs';
+import SearchBar from '@/components/jobCenter/searchBar';
+import SectionHeader from '@/components/jobCenter/sectionHeader';
+import TopCompanies from '@/components/jobCenter/topCompanies';
+import { BRAND_BG } from '@/constants/colors';
+import React from 'react';
+import { ScrollView, StyleSheet, Text } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { AIChatAssistant } from '@/components/ai-chat-assistant';
-import { Header } from '@/components/header';
-import { JobCentreTabs } from '@/components/job-centre-tabs';
-import { JobsSection } from '@/components/jobs-section';
-import { ThemedView } from '@/components/themed-view';
-import { useThemeColor } from '@/hooks/use-theme-color';
-
-// Sample job data
-const matchedJobs = [
-  {
-    companyName: 'Datus International School',
-    location: 'Accra & Tema Region',
-    jobTitle: 'Graduate Trainees',
-    jobSalary: 'Confidential',
-    matchPercentage: 1,
-  },
-  {
-    companyName: 'Vanderbilt limited',
-    location: 'Accra & Tema Region',
-    jobTitle: 'Graphic Designer/Video Editor',
-    jobSalary: 'Confidential',
-    matchPercentage: 1,
-  },
-  {
-    companyName: 'Personnel Practice Limited',
-    location: 'Accra & Tema Region',
-    jobTitle: 'Sales Manager',
-    jobSalary: 'Confidential',
-    matchPercentage: 1,
-  },
-  {
-    companyName: 'Petra Trust Company Ltd',
-    location: 'Accra & Tema Region',
-    jobTitle: 'Sales Advisor',
-    jobSalary: 'Confidential',
-    matchPercentage: 1,
-  },
-  {
-    companyName: 'Sylprin Company Limited',
-    location: 'Accra & Tema Region',
-    jobTitle: 'Business Manager - Bakery Factory',
-    jobSalary: 'Confidential',
-    matchPercentage: 1,
-  },
-  {
-    companyName: 'Mobile Sport Ghana Limited',
-    location: 'Accra & Tema Region',
-    jobTitle: 'Brand Campaign Coordinator',
-    jobSalary: 'Confidential',
-    matchPercentage: 1,
-  },
-];
-
-const recommendedJobs = [
-  {
-    companyName: 'IT & Electric Limited',
-    location: 'Accra & Tema Region',
-    jobTitle: 'Accounts Officer',
-    jobSalary: 'Confidential',
-    matchPercentage: 1,
-  },
-  {
-    companyName: 'The Truth Company LTD',
-    location: 'Accra & Tema Region',
-    jobTitle: 'Mobile Bankers',
-    jobSalary: 'Confidential',
-    matchPercentage: 1,
-  },
-  {
-    companyName: 'Peacemaker Foods',
-    location: 'Accra & Tema Region',
-    jobTitle: 'Sales and Marketing Officer',
-    jobSalary: 'Confidential',
-    matchPercentage: 1,
-  },
-  {
-    companyName: 'Transworld Business Advisors',
-    location: 'Accra & Tema Region',
-    jobTitle: 'Sales Manager',
-    jobSalary: 'Confidential',
-    matchPercentage: 1,
-  },
-  {
-    companyName: 'Allegro Travel and Tours',
-    location: 'Accra & Tema Region',
-    jobTitle: 'Accounts and Social Media Officer',
-    jobSalary: 'Confidential',
-    matchPercentage: 1,
-  },
-  {
-    companyName: 'A Reputable HR Firm',
-    location: 'Accra & Tema Region',
-    jobTitle: 'Telesales Consultant',
-    jobSalary: 'Confidential',
-    matchPercentage: 1,
-  },
-];
-
-export default function JobCentreScreen() {
-  const [activeTab, setActiveTab] = useState<'jobs' | 'ai-chat'>('jobs');
-  const iconColor = useThemeColor({}, 'tint');
-  const aiChatBackgroundColor = useThemeColor(
-    { light: '#fff', dark: '#151718' },
-    'background'
-  );
+export default function JobCenterScreen() {
+  const handleCategory = (id: string) => {
+    console.log('Category pressed:', id);
+  };
 
   return (
-    <View style={styles.container}>
-      <Header title="Job Intelligence Center" />
-      <JobCentreTabs activeTab={activeTab} onTabChange={setActiveTab} />
-      {activeTab === 'jobs' ? (
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-          <ThemedView style={styles.content}>
-            {/* Matched Jobs Section */}
-            <JobsSection title="Matched Jobs" count={12} jobs={matchedJobs} />
+    <SafeAreaView style={styles.area}>
+      <ScrollView contentContainerStyle={styles.scroll}>
+        <Text style={styles.title}>Explore Jobs</Text>
 
-            {/* Recommended Jobs Section */}
-            <JobsSection title="Recommended Jobs" count={38} jobs={recommendedJobs} />
-          </ThemedView>
-        </ScrollView>
-      ) : (
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-          <ThemedView
-            style={[
-              styles.content,
-              {
-                backgroundColor: aiChatBackgroundColor,
-              },
-            ]}>
-            <AIChatAssistant />
-          </ThemedView>
-        </ScrollView>
-      )}
-    </View>
+        <SearchBar />
+
+        <Text style={styles.section}>Browse by category</Text>
+        <BrowseCategories onPress={handleCategory} />
+
+        <SectionHeader title="Top Company" onPress={() => {}} />
+        <TopCompanies />
+
+        <SectionHeader title="Remote Jobs" onPress={() => {}} />
+        <RemoteJobs />
+
+        <SectionHeader title="Recommendation jobs" />
+        {/* You can reuse RemoteJobs with different data later */}
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  content: {
-    padding: 20,
-  },
-  jobCentreHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  jobCentreTitle: {
-    fontSize: 20,
-  },
-  headerActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
-  },
-  refreshButton: {
-    padding: 4,
-  },
-  viewAllText: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
+  area: { flex: 1, backgroundColor: BRAND_BG, paddingHorizontal: 20 },
+  scroll: { flexGrow: 1},
+  title: { fontSize: 22, fontWeight: 'bold', textAlign: 'center', paddingBottom: 6, marginTop: 6 },
+  section: { fontSize: 18, fontWeight: '700', marginTop: 12, marginBottom: 8 },
 });
