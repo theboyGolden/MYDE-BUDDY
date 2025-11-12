@@ -12,7 +12,7 @@ type ThemeToggleButtonProps = {
 };
 
 export function ThemeToggleButton({ colorScheme, onToggle, style }: ThemeToggleButtonProps) {
-  const iconName = colorScheme === "dark" ? "wb-sunny" : "nightlight-round";
+  const iconName = colorScheme === "dark" ? "nights-stay" : "wb-sunny";
   const palette = Colors[colorScheme];
   const backgroundColor = colorScheme === "dark" ? "#2A2B2F" : "#F2F2F6";
 

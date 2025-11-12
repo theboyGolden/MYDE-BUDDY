@@ -31,13 +31,6 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="insights"
-        options={{
-          title: 'Insights',
-          tabBarIcon: ({ color }) => <MaterialIcons name="insights" size={24} color={color} />,
-        }}
-      />
-      <Tabs.Screen
         name="job-centre"
         options={{
           title: 'Job Centre',
@@ -45,10 +38,24 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="education-centre"
+        options={{
+          title: 'Education',
+          tabBarIcon: ({ color }) => <MaterialIcons name="school" size={24} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="entrepreneurship-centre"
+        options={{
+          title: 'Entrepreneurship',
+          tabBarIcon: ({ color }) => <MaterialIcons name="business-center" size={24} color={color} />,
+        }}
+      />
+      <Tabs.Screen
         name="more"
         options={{
-          title: 'More',
-          tabBarIcon: ({ color }) => <MaterialIcons name="more-horiz" size={24} color={color} />,
+          title: 'Network',
+          tabBarIcon: ({ color }) => <MaterialIcons name="people-outline" size={24} color={color} />,
         }}
       />
       <Tabs.Screen

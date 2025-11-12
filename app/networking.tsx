@@ -46,7 +46,7 @@ export default function NetworkingScreen() {
 
   return (
     <View style={styles.container}>
-      <Header title="Networking" showBackButton />
+      <Header title="Networking" />
       <View style={styles.tabsContainer}>
         {tabs.map((tab) => {
           const isActive = tab.key === activeTab;
@@ -544,7 +544,6 @@ const ChatSection = ({ styles, palette }: SectionProps) => {
 
       <View style={styles.chatList}>
         {chats.map((chat) => {
-          const isActive = chat.id === selectedChatId;
           return (
             <TouchableOpacity
               key={chat.id}

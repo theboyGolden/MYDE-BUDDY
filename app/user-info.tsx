@@ -17,7 +17,6 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { ThemeToggleButton } from "@/components/theme-toggle-button";
 import { Colors } from "@/constants/theme";
 import { useTheme } from "@/contexts/theme-context";
 import { UpdateUserImageSheet } from "../components/update-user-image-sheet";
@@ -97,7 +96,7 @@ const buildInitialFormState = (params: Record<string, string | string[] | undefi
 export default function UserInfo() {
   const router = useRouter();
   const params = useLocalSearchParams();
-  const { colorScheme, toggleTheme } = useTheme();
+  const { colorScheme } = useTheme();
 
   const palette = useMemo<ThemePalette>(() => Colors[colorScheme], [colorScheme]);
 
@@ -242,7 +241,7 @@ export default function UserInfo() {
             <MaterialIcons name="arrow-back" size={24} color={palette.text} />
       </TouchableOpacity>
           <Text style={styles.title}>Edit Profile</Text>
-          <ThemeToggleButton colorScheme={colorScheme} onToggle={toggleTheme} />
+          <View style={styles.placeholder} />
         </View>
 
       {/* Profile Icon */}
@@ -458,6 +457,9 @@ const createStyles = (colorScheme: "light" | "dark", palette: ThemePalette) => {
       color: palette.text,
       flex: 1,
       textAlign: "center",
+    },
+    placeholder: {
+      width: 36,
     },
     imageContainer: {
       alignItems: "center",

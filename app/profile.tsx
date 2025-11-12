@@ -12,7 +12,6 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { ThemeToggleButton } from "@/components/theme-toggle-button";
 import { Colors } from "@/constants/theme";
 import { useTheme } from "@/contexts/theme-context";
 
@@ -79,7 +78,7 @@ type ThemePalette = typeof Colors.light;
 export default function ProfileScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
-  const { colorScheme, toggleTheme } = useTheme();
+  const { colorScheme } = useTheme();
   const palette = useMemo<ThemePalette>(() => Colors[colorScheme], [colorScheme]);
   const accent = useMemo(
     () => (colorScheme === "dark" ? "#F4A300" : palette.tint),
@@ -165,7 +164,6 @@ export default function ProfileScreen() {
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <MaterialIcons name="arrow-back" size={24} color={palette.text} />
         </TouchableOpacity>
-        <ThemeToggleButton colorScheme={colorScheme} onToggle={toggleTheme} />
       </View>
 
      
