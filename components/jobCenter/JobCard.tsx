@@ -1,5 +1,4 @@
 import { ThemedText } from "@/components/themed-text";
-import { CARD_BG } from "@/constants/colors";
 import type { Job } from "@/data/jobs";
 import { useThemeColor } from "@/hooks/use-theme-color";
 import { Ionicons } from "@expo/vector-icons";
@@ -14,12 +13,14 @@ type Props = {
 
 export default function JobCard({ job, isBookmarked, onToggleBookmark }: Props) {
   const text = useThemeColor({}, "text");
-  const brand = useThemeColor({}, "tint");
+  // Use brand color consistently (not tint which is white in dark mode)
+  const brand = useThemeColor({ light: "#e0971d", dark: "#e0971d" }, "tint");
   const muted = useThemeColor({ light: "#64748b", dark: "#c7c7c7" }, "text");
   const surface = useThemeColor({ light: "#ffffff", dark: "#1f1f1f" }, "background");
   const tagBackground = useThemeColor({ light: "#f8fafc", dark: "#252525" }, "background");
   const tagBorder = useThemeColor({ light: "#f1f5f9", dark: "#2f2f2f" }, "background");
   const tagAltBackground = useThemeColor({ light: "#fff8ee", dark: "#2a1f12" }, "background");
+  const logoBg = useThemeColor({ light: "#dde4f9", dark: "#2a2a3a" }, "background");
   const shadowColor = useThemeColor({ light: "#000", dark: "#000" }, "background");
 
   return (
@@ -34,12 +35,12 @@ export default function JobCard({ job, isBookmarked, onToggleBookmark }: Props) 
     >
       <View style={styles.row}>
         <View style={styles.companyInfo}>
-          <View style={styles.logoContainer}>
+          <View style={[styles.logoContainer, { backgroundColor: logoBg }]}>
             <Image source={{ uri: job.logoUrl }} style={styles.logo} />
           </View>
           <View style={styles.jobDetails}>
             <ThemedText style={[styles.company, { color: muted }]}>{job.company}</ThemedText>
-            <ThemedText style={[styles.title, { color: text }]}>{job.title}</ThemedText>
+            <ThemedText style={styles.title}>{job.title}</ThemedText>
             <ThemedText style={[styles.salary, { color: brand }]}>
               {job.salaryUnit === "yearly" && `$${job.salaryMin.toLocaleString()} - $${job.salaryMax.toLocaleString()}/Year`}
               {job.salaryUnit === "monthly" && `$${job.salaryMin} - $${job.salaryMax}/Month`}
@@ -87,7 +88,6 @@ const styles = StyleSheet.create({
   logoContainer: {
     padding: 12,
     borderRadius: 12,
-    backgroundColor: CARD_BG,
     height: 60,
     width: 60,
     alignItems: "center",

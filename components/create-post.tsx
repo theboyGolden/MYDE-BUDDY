@@ -1,12 +1,15 @@
-import { MaterialIcons } from '@expo/vector-icons';
+import { FontAwesome5 } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import { StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
 import { useThemeColor } from '@/hooks/use-theme-color';
 
-export function CreatePost() {
+interface CreatePostProps {
+  onClose?: () => void;
+}
+
+export function CreatePost({ onClose }: CreatePostProps) {
   const [postText, setPostText] = useState('');
   const [visibility, setVisibility] = useState('Public');
   const iconColor = useThemeColor({}, 'icon');
@@ -25,14 +28,15 @@ export function CreatePost() {
       // Handle post submission
       console.log('Posting:', postText);
       setPostText('');
+      onClose?.();
     }
   };
 
   return (
-    <ThemedView style={[styles.container, { backgroundColor, borderColor }]}>
+    <View style={styles.container}>
       <View style={styles.header}>
         <View style={styles.avatarContainer}>
-          <MaterialIcons name="account-circle" size={40} color={iconColor} />
+          <FontAwesome5 name="user-circle" size={40} color={iconColor} />
         </View>
         <TextInput
           style={[styles.input, { backgroundColor: inputBackgroundColor }]}
@@ -48,54 +52,43 @@ export function CreatePost() {
       <View style={styles.footer}>
         <View style={styles.actionsRow}>
           <TouchableOpacity style={styles.actionButton} activeOpacity={0.7}>
-            <MaterialIcons name="image" size={20} color={iconColor} />
+            <FontAwesome5 name="image" size={20} color={iconColor} />
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionButton} activeOpacity={0.7}>
-            <MaterialIcons name="videocam" size={20} color={iconColor} />
+            <FontAwesome5 name="video" size={20} color={iconColor} />
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionButton} activeOpacity={0.7}>
-            <MaterialIcons name="bar-chart" size={20} color={iconColor} />
+            <FontAwesome5 name="chart-bar" size={20} color={iconColor} />
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionButton} activeOpacity={0.7}>
-            <MaterialIcons name="schedule" size={20} color={iconColor} />
+            <FontAwesome5 name="clock" size={20} color={iconColor} />
           </TouchableOpacity>
         </View>
 
         <View style={styles.rightSection}>
           <TouchableOpacity style={styles.visibilityButton} activeOpacity={0.7}>
-            <MaterialIcons name="lock-outline" size={16} color={iconColor} />
+            <FontAwesome5 name="lock" size={16} color={iconColor} />
             <ThemedText style={styles.visibilityText}>{visibility}</ThemedText>
-            <MaterialIcons name="arrow-drop-down" size={16} color={iconColor} />
+            <FontAwesome5 name="chevron-down" size={16} color={iconColor} />
           </TouchableOpacity>
 
           <TouchableOpacity
             style={[styles.postButton, { backgroundColor: '#e0971d' }]}
             onPress={handlePost}
             activeOpacity={0.8}>
-            <MaterialIcons name="send" size={18} color="#fff" />
+            <FontAwesome5 name="paper-plane" size={18} color="#fff" />
             <ThemedText style={styles.postButtonText}>Post</ThemedText>
           </TouchableOpacity>
         </View>
       </View>
-    </ThemedView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     padding: 16,
-    margin: 12,
-    marginBottom: 8,
-    borderRadius: 12,
     gap: 12,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
   },
   header: {
     flexDirection: 'row',

@@ -1,4 +1,5 @@
 import { ThemedText } from "@/components/themed-text";
+import { ThemedView } from "@/components/themed-view";
 import { useThemeColor } from "@/hooks/use-theme-color";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
@@ -22,7 +23,11 @@ export default function TopTabs({
   const bg = useThemeColor({ light: "#f8fafc", dark: "#161616" }, "background");
   const border = useThemeColor({ light: "#e5e7eb", dark: "#2b2b2b" }, "background");
   const text = useThemeColor({}, "text");
-  const tint = useThemeColor({}, "tint");
+  // Use brand color for tabs (consistent across themes)
+  const brandColor = useThemeColor(
+    { light: "#e0971d", dark: "#e0971d" },
+    "tint"
+  );
   const muted = useThemeColor({ light: "#64748b", dark: "#94a3b8" }, "text");
 
   const Tab = ({
@@ -42,8 +47,8 @@ export default function TopTabs({
         style={[
           styles.tab,
           {
-            backgroundColor: selected ? tint : "transparent",
-            borderColor: selected ? tint : border,
+            backgroundColor: selected ? brandColor : "transparent",
+            borderColor: selected ? brandColor : border,
           },
         ]}
         onPress={() => onChange(id)}
@@ -52,14 +57,12 @@ export default function TopTabs({
         <Ionicons 
           name={icon} 
           size={16} 
-          color={selected ? "#ffffff" : muted} 
+          color={selected ? "#ffffff" : text} 
         />
         <ThemedText
           style={[
             styles.tabText,
-            { 
-              color: selected ? "#ffffff" : text,
-            }
+            selected && { color: "#ffffff" }
           ]}
           numberOfLines={1}
         >
@@ -70,7 +73,7 @@ export default function TopTabs({
             style={[
               styles.badge,
               { 
-                backgroundColor: selected ? "#ffffff" : tint,
+                backgroundColor: selected ? "#ffffff" : brandColor,
               },
             ]}
           >
@@ -78,7 +81,7 @@ export default function TopTabs({
               style={[
                 styles.badgeText,
                 { 
-                  color: selected ? tint : "#ffffff",
+                  color: selected ? brandColor : "#ffffff",
                 },
               ]}
             >
@@ -91,11 +94,11 @@ export default function TopTabs({
   };
 
   return (
-    <View style={[styles.wrap, { borderColor: border }]}>
+    <ThemedView style={[styles.wrap, { borderColor: border }]}>
       <Tab id="jobs" label="Jobs" icon="briefcase-outline" count={jobsCount} />
       <Tab id="saved" label="Saved" icon="bookmark-outline" count={savedCount} />
       <Tab id="ai" label="AI Search" icon="sparkles" />
-    </View>
+    </ThemedView>
   );
 }
 

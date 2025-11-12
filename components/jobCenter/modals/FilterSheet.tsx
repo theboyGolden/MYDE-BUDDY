@@ -1,28 +1,27 @@
+import { ThemedText } from "@/components/themed-text";
 import { Ionicons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
 import React, { useEffect, useRef, useState } from "react";
 import {
-  Animated,
-  Easing,
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    Animated,
+    Easing,
+    KeyboardAvoidingView,
+    Modal,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 
 import {
-  BRAND,
-  GRADIENT_END,
-  GRADIENT_START,
-  TEXT_MUTED,
-  WHITE,
+    BRAND,
+    GRADIENT_END,
+    GRADIENT_START,
 } from "@/constants/colors";
+import { useThemeColor } from "@/hooks/use-theme-color";
 
 /* ------------------- TYPES --------------------- */
 
@@ -134,6 +133,19 @@ export default function FilterSheet({
   onApply,
   initialFilters,
 }: Props) {
+  const backgroundColor = useThemeColor({}, "background");
+  const surface = useThemeColor({ light: "#ffffff", dark: "#1f1f1f" }, "background");
+  const surfaceLight = useThemeColor({ light: "#F8FAFC", dark: "#2a2a2a" }, "background");
+  const border = useThemeColor({ light: "#e5e7eb", dark: "#3a3a3a" }, "background");
+  const text = useThemeColor({}, "text");
+  const textMuted = useThemeColor({ light: "#64748b", dark: "#94a3b8" }, "text");
+  const textSecondary = useThemeColor({ light: "#374151", dark: "#d1d5db" }, "text");
+  const activeBackground = useThemeColor({ light: "#fff6ea", dark: "#3a2f1f" }, "background");
+  const activeBackgroundAlt = useThemeColor({ light: "#fff4e5", dark: "#3a2f1f" }, "background");
+  const divider = useThemeColor({ light: "#f1f5f9", dark: "#3a3a3a" }, "background");
+  const closeBtnBg = useThemeColor({ light: "#f4f4f4", dark: "#2a2a2a" }, "background");
+  const iconColor = useThemeColor({}, "icon");
+
   // ✅ Default selected values (so each dropdown shows something by default)
   const [filters, setFilters] = useState<FilterOptions>({
     category: CATEGORIES[0].value,
@@ -191,21 +203,29 @@ export default function FilterSheet({
 
     return (
       <View style={[styles.dropdownWrapper, { zIndex: z }]}>
-        <Text style={styles.sectionLabel}>{label}</Text>
+        <ThemedText style={[styles.sectionLabel, { color: textMuted }]}>{label}</ThemedText>
 
         <TouchableOpacity
           onPress={() => setOpen(isOpen ? null : type)}
-          style={[styles.dropdownButton, isOpen && styles.dropdownButtonActive]}
+          style={[
+            styles.dropdownButton,
+            {
+              backgroundColor: surfaceLight,
+              borderColor: isOpen ? BRAND : border,
+            },
+            isOpen && { backgroundColor: activeBackground },
+          ]}
           activeOpacity={0.85}
         >
-          <Text
+          <ThemedText
             style={[
               styles.dropdownButtonText,
+              { color: selectedLabel !== "Select" ? text : textMuted },
               selectedLabel !== "Select" && styles.dropdownButtonSelected,
             ]}
           >
             {selectedLabel}
-          </Text>
+          </ThemedText>
           <Ionicons
             name={isOpen ? "chevron-up" : "chevron-down"}
             size={18}
@@ -214,7 +234,16 @@ export default function FilterSheet({
         </TouchableOpacity>
 
         {isOpen && (
-          <View style={[styles.dropdownMenu, { zIndex: z + 50 }]}>
+          <View
+            style={[
+              styles.dropdownMenu,
+              {
+                backgroundColor: surface,
+                borderColor: border,
+                zIndex: z + 50,
+              },
+            ]}
+          >
             <ScrollView>
               {options.map((opt) => (
                 <TouchableOpacity
@@ -225,18 +254,25 @@ export default function FilterSheet({
                   }}
                   style={[
                     styles.dropdownItem,
-                    filters[type] === opt.value && styles.dropdownItemSelected,
+                    {
+                      borderBottomColor: divider,
+                    },
+                    filters[type] === opt.value && {
+                      backgroundColor: activeBackgroundAlt,
+                    },
                   ]}
                 >
-                  <Text
+                  <ThemedText
                     style={[
                       styles.dropdownItemText,
-                      filters[type] === opt.value &&
-                        styles.dropdownItemTextSelected,
+                      {
+                        color: filters[type] === opt.value ? BRAND : textSecondary,
+                      },
+                      filters[type] === opt.value && styles.dropdownItemTextSelected,
                     ]}
                   >
                     {opt.label}
-                  </Text>
+                  </ThemedText>
 
                   {filters[type] === opt.value && (
                     <Ionicons name="checkmark" size={16} color={BRAND} />
@@ -283,13 +319,24 @@ export default function FilterSheet({
         style={styles.container}
       >
         {/* Bottom sheet */}
-        <Animated.View style={[styles.sheet, { transform: [{ translateY }] }]}>
+        <Animated.View
+          style={[
+            styles.sheet,
+            {
+              backgroundColor: surface,
+              transform: [{ translateY }],
+            },
+          ]}
+        >
           {/* Header */}
           <View style={styles.header}>
-            <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
-              <Ionicons name="close" size={22} color="#111" />
+            <TouchableOpacity
+              onPress={onClose}
+              style={[styles.closeBtn, { backgroundColor: closeBtnBg }]}
+            >
+              <Ionicons name="close" size={22} color={text} />
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>Filter Jobs</Text>
+            <ThemedText style={styles.headerTitle}>Filter Jobs</ThemedText>
           </View>
 
           {/* Content */}
@@ -307,16 +354,16 @@ export default function FilterSheet({
 
             {/* Salary header + unit dropdown */}
             <View style={styles.salaryHeaderRow}>
-              <Text style={styles.sectionLabel}>Salary</Text>
+              <ThemedText style={[styles.sectionLabel, { color: textMuted }]}>Salary</ThemedText>
 
               <View style={{ zIndex: 9992 }}>
                 <TouchableOpacity
                   onPress={() => setOpen(open === "salaryUnit" ? null : "salaryUnit")}
                   style={styles.salaryUnitBtn}
                 >
-                  <Text style={styles.salaryUnitText}>
+                  <ThemedText style={[styles.salaryUnitText, { color: BRAND }]}>
                     {labelFor(filters.salaryUnit, SALARY_UNITS)}
-                  </Text>
+                  </ThemedText>
                   <Ionicons
                     name={open === "salaryUnit" ? "chevron-up" : "chevron-down"}
                     size={16}
@@ -325,27 +372,40 @@ export default function FilterSheet({
                 </TouchableOpacity>
 
                 {open === "salaryUnit" && (
-                  <View style={styles.salaryUnitMenu}>
+                  <View
+                    style={[
+                      styles.salaryUnitMenu,
+                      {
+                        backgroundColor: surface,
+                        borderColor: border,
+                      },
+                    ]}
+                  >
                     {SALARY_UNITS.map((opt) => (
                       <TouchableOpacity
                         key={opt.value}
                         style={[
                           styles.salaryUnitItem,
-                          filters.salaryUnit === opt.value && styles.salaryUnitItemSelected,
+                          filters.salaryUnit === opt.value && {
+                            backgroundColor: activeBackgroundAlt,
+                          },
                         ]}
                         onPress={() => {
                           setFilters((f) => ({ ...f, salaryUnit: opt.value }));
                           setOpen(null);
                         }}
                       >
-                        <Text
+                        <ThemedText
                           style={[
                             styles.salaryUnitItemText,
+                            {
+                              color: filters.salaryUnit === opt.value ? BRAND : textSecondary,
+                            },
                             filters.salaryUnit === opt.value && styles.salaryUnitItemTextSelected,
                           ]}
                         >
                           {opt.label}
-                        </Text>
+                        </ThemedText>
 
                         {filters.salaryUnit === opt.value && (
                           <Ionicons name="checkmark" size={14} color={BRAND} />
@@ -360,31 +420,53 @@ export default function FilterSheet({
             {/* Salary Min/Max */}
             <View style={styles.salaryRow}>
               <View style={{ flex: 1 }}>
-                <View style={styles.salaryFieldBox}>
-                  <Text style={styles.salaryPrefix}>$</Text>
+                <View
+                  style={[
+                    styles.salaryFieldBox,
+                    {
+                      backgroundColor: surface,
+                      borderColor: border,
+                    },
+                  ]}
+                >
+                  <ThemedText style={[styles.salaryPrefix, { color: textMuted }]}>$</ThemedText>
                   <TextInput
                     keyboardType="numeric"
                     placeholder="150"
+                    placeholderTextColor={textMuted}
                     value={filters.salaryMin}
                     onChangeText={(t) => setFilters((f) => ({ ...f, salaryMin: t }))}
-                    style={styles.salaryInput}
+                    style={[styles.salaryInput, { color: text }]}
                   />
                 </View>
-                <Text style={styles.salaryCaption}>Min. Salary</Text>
+                <ThemedText style={[styles.salaryCaption, { color: textMuted }]}>
+                  Min. Salary
+                </ThemedText>
               </View>
 
               <View style={{ flex: 1 }}>
-                <View style={styles.salaryFieldBox}>
-                  <Text style={styles.salaryPrefix}>$</Text>
+                <View
+                  style={[
+                    styles.salaryFieldBox,
+                    {
+                      backgroundColor: surface,
+                      borderColor: border,
+                    },
+                  ]}
+                >
+                  <ThemedText style={[styles.salaryPrefix, { color: textMuted }]}>$</ThemedText>
                   <TextInput
                     keyboardType="numeric"
                     placeholder="350"
+                    placeholderTextColor={textMuted}
                     value={filters.salaryMax}
                     onChangeText={(t) => setFilters((f) => ({ ...f, salaryMax: t }))}
-                    style={styles.salaryInput}
+                    style={[styles.salaryInput, { color: text }]}
                   />
                 </View>
-                <Text style={styles.salaryCaption}>Max. Salary</Text>
+                <ThemedText style={[styles.salaryCaption, { color: textMuted }]}>
+                  Max. Salary
+                </ThemedText>
               </View>
             </View>
           </ScrollView>
@@ -393,12 +475,12 @@ export default function FilterSheet({
           <View style={styles.footer}>
             <TouchableOpacity style={styles.applyBtn} onPress={handleApply} activeOpacity={0.85}>
               <LinearGradient colors={[GRADIENT_START, GRADIENT_END]} style={styles.applyGradient}>
-                <Text style={styles.applyText}>Apply Filters</Text>
+                <ThemedText style={styles.applyText}>Apply Filters</ThemedText>
               </LinearGradient>
             </TouchableOpacity>
 
             <TouchableOpacity onPress={handleClear}>
-              <Text style={styles.clearText}>Clear All</Text>
+              <ThemedText style={[styles.clearText, { color: "#ef4444" }]}>Clear All</ThemedText>
             </TouchableOpacity>
           </View>
         </Animated.View>
@@ -413,7 +495,6 @@ const styles = StyleSheet.create({
   backdrop: { ...StyleSheet.absoluteFillObject },
   container: { ...StyleSheet.absoluteFillObject, justifyContent: "flex-end" },
   sheet: {
-    backgroundColor: WHITE,
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
     maxHeight: "85%",
@@ -432,14 +513,12 @@ const styles = StyleSheet.create({
     height: 32,
     width: 32,
     borderRadius: 16,
-    backgroundColor: "#f4f4f4",
     alignItems: "center",
     justifyContent: "center",
   },
   headerTitle: {
     fontSize: 20,
     fontWeight: "700",
-    color: "#111827",
   },
 
   contentContainer: {
@@ -452,7 +531,6 @@ const styles = StyleSheet.create({
   sectionLabel: {
     fontSize: 12,
     fontWeight: "700",
-    color: TEXT_MUTED,
     marginBottom: 8,
     textTransform: "uppercase",
   },
@@ -463,24 +541,16 @@ const styles = StyleSheet.create({
   dropdownButton: {
     height: 52,
     borderRadius: 14,
-    backgroundColor: "#F8FAFC",
     borderWidth: 1,
-    borderColor: "#e5e7eb",
     paddingHorizontal: 16,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
   },
-  dropdownButtonActive: {
-    borderColor: BRAND,
-    backgroundColor: "#fff6ea",
-  },
   dropdownButtonText: {
-    color: TEXT_MUTED,
     fontSize: 16,
   },
   dropdownButtonSelected: {
-    color: "#111",
     fontWeight: "600",
   },
 
@@ -490,10 +560,8 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     maxHeight: 200,
-    backgroundColor: WHITE,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#e5e7eb",
     shadowColor: "#000",
     shadowOpacity: 0.1,
     shadowRadius: 10,
@@ -506,17 +574,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     borderBottomWidth: 1,
-    borderBottomColor: "#f1f5f9",
-  },
-  dropdownItemSelected: {
-    backgroundColor: "#fff4e5",
   },
   dropdownItemText: {
     fontSize: 16,
-    color: "#374151",
   },
   dropdownItemTextSelected: {
-    color: BRAND,
     fontWeight: "700",
   },
 
@@ -547,10 +609,8 @@ const styles = StyleSheet.create({
     top: 48,
     right: 0,
     width: 140,
-    backgroundColor: WHITE,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: "#e5e7eb",
     shadowColor: "#000",
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -564,13 +624,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
   },
-  salaryUnitItemSelected: { backgroundColor: "#fff4e5" },
   salaryUnitItemText: {
     fontSize: 15,
-    color: "#374151",
   },
   salaryUnitItemTextSelected: {
-    color: BRAND,
     fontWeight: "700",
   },
 
@@ -581,27 +638,22 @@ const styles = StyleSheet.create({
   salaryFieldBox: {
     height: 52,
     borderRadius: 14,
-    backgroundColor: WHITE,
     borderWidth: 1,
-    borderColor: "#e5e7eb",
     paddingHorizontal: 14,
     flexDirection: "row",
     alignItems: "center",
   },
   salaryPrefix: {
-    color: "#6b7280",
     fontWeight: "700",
     marginRight: 6,
   },
   salaryInput: {
     flex: 1,
     fontSize: 16,
-    color: "#111827",
   },
   salaryCaption: {
     marginTop: 6,
     fontSize: 12,
-    color: TEXT_MUTED,
   },
 
   /* Footer */
@@ -619,12 +671,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   applyText: {
-    color: WHITE,
+    color: "#ffffff",
     fontSize: 17,
     fontWeight: "700",
   },
   clearText: {
-    color: "#ef4444",
     fontWeight: "700",
     fontSize: 15,
     textAlign: "center",

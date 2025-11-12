@@ -11,7 +11,6 @@ import TopTabs, { JobCenterTab } from "@/components/jobCenter/TopTabs";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { JOBS, Job } from "@/data/jobs";
-import { useThemeColor } from "@/hooks/use-theme-color";
 
 export default function JobCenterScreen() {
   const [activeTab, setActiveTab] = useState<JobCenterTab>("jobs");
@@ -99,10 +98,8 @@ export default function JobCenterScreen() {
     setShowFilters(false);
   };
 
-  const background = useThemeColor({}, "background");
-
   return (
-    <ThemedView style={[styles.container, { backgroundColor: background }]}>
+    <ThemedView style={styles.container}>
       <Header title="Job Centre" />
       <TopTabs
         active={activeTab}

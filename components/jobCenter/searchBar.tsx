@@ -14,6 +14,11 @@ export default function SearchBar({ query, onQueryChange, onFilterPress }: Props
   const border = useThemeColor({ light: "#e5e7eb", dark: "#2b2b2b" }, "background");
   const text = useThemeColor({}, "text");
   const tint = useThemeColor({}, "tint");
+  const filterBtnBg = useThemeColor({ light: "#ffffff", dark: "#2a2a2a" }, "background");
+  const placeholderColor = useThemeColor(
+    { light: "#9ca3af", dark: "#6b7280" },
+    "icon"
+  );
 
   return (
     <View style={[styles.row]}>
@@ -21,14 +26,17 @@ export default function SearchBar({ query, onQueryChange, onFilterPress }: Props
         <Ionicons name="search-outline" size={18} color={text} />
         <TextInput
           placeholder="Search jobs by title, company, category, or city..."
-          placeholderTextColor="#9ca3af"
+          placeholderTextColor={placeholderColor}
           style={[styles.input, { color: text }]}
           value={query}
           onChangeText={onQueryChange}
           autoCapitalize="none"
         />
       </View>
-      <TouchableOpacity style={[styles.filterBtn, { borderColor: border }]} onPress={onFilterPress}>
+      <TouchableOpacity
+        style={[styles.filterBtn, { backgroundColor: filterBtnBg, borderColor: border }]}
+        onPress={onFilterPress}
+      >
         <Ionicons name="options-outline" size={20} color={tint} />
       </TouchableOpacity>
     </View>

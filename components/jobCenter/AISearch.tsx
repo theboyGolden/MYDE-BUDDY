@@ -1,4 +1,5 @@
 import { ThemedText } from "@/components/themed-text";
+import { ThemedView } from "@/components/themed-view";
 import { JOBS, Job } from "@/data/jobs";
 import { useThemeColor } from "@/hooks/use-theme-color";
 import { Ionicons } from "@expo/vector-icons";
@@ -53,12 +54,33 @@ export default function AISearch({ bookmarkedIds, onToggleBookmark }: Props) {
   const [prompt, setPrompt] = useState("");
   const [results, setResults] = useState<Job[]>([]);
 
-  const bg = useThemeColor({ light: "#0f172a", dark: "#0b0b0b" }, "background");
-  const surface = useThemeColor({ light: "#111827", dark: "#161616" }, "background");
-  const border = useThemeColor({ light: "#1f2937", dark: "#2b2b2b" }, "background");
-  const text = useThemeColor({ light: "#e5e7eb", dark: "#e5e5e5" }, "text");
-  const tint = useThemeColor({}, "tint");
-  const muted = useThemeColor({ light: "#94a3b8", dark: "#bdbdbd" }, "text");
+  const surface = useThemeColor(
+    { light: "#f5f5f5", dark: "#1a1a1a" },
+    "background"
+  );
+  const border = useThemeColor(
+    { light: "rgba(0, 0, 0, 0.1)", dark: "rgba(255, 255, 255, 0.1)" },
+    "background"
+  );
+  const text = useThemeColor({}, "text");
+  // Use brand color consistently (not tint which is white in dark mode)
+  const brandColor = useThemeColor(
+    { light: "#e0971d", dark: "#e0971d" },
+    "tint"
+  );
+  const muted = useThemeColor(
+    { light: "#666666", dark: "#999999" },
+    "text"
+  );
+  const placeholderColor = useThemeColor(
+    { light: "#9aa3af", dark: "#6b7280" },
+    "icon"
+  );
+
+  const suggestBg = useThemeColor(
+    { light: "#f8fafc", dark: "#2a2a2a" },
+    "background"
+  );
 
   const suggestions = useMemo(
     () => [
@@ -71,26 +93,26 @@ export default function AISearch({ bookmarkedIds, onToggleBookmark }: Props) {
   );
 
   return (
-    <View style={[styles.container, { backgroundColor: bg }]}>
-      <ThemedText style={[styles.heading, { color: text }]}>
+    <ThemedView style={styles.container}>
+      <ThemedText style={styles.heading}>
         Ask AI to find jobs
       </ThemedText>
       <ThemedText style={[styles.caption, { color: muted }]}>
-        Describe what you’re looking for. We’ll surface the closest matches.
+        Describe what you're looking for. We'll surface the closest matches.
       </ThemedText>
 
       <View style={[styles.promptBox, { backgroundColor: surface, borderColor: border }]}>
-        <Ionicons name="sparkles-outline" size={18} color={tint} />
+        <Ionicons name="sparkles-outline" size={18} color={brandColor} />
         <TextInput
           style={[styles.input, { color: text }]}
           placeholder="e.g., Remote React Native roles in Ghana with TypeScript"
-          placeholderTextColor="#9aa3af"
+          placeholderTextColor={placeholderColor}
           value={prompt}
           onChangeText={setPrompt}
           multiline
         />
         <TouchableOpacity
-          style={[styles.askBtn, { backgroundColor: tint }]}
+          style={[styles.askBtn, { backgroundColor: brandColor }]}
           onPress={() => {
             Keyboard.dismiss();
             setResults(aiMatch(prompt));
@@ -109,10 +131,10 @@ export default function AISearch({ bookmarkedIds, onToggleBookmark }: Props) {
               setPrompt(s);
               setResults(aiMatch(s));
             }}
-            style={[styles.suggestChip, { borderColor: border }]}
+            style={[styles.suggestChip, { backgroundColor: suggestBg, borderColor: border }]}
           >
-            <Ionicons name="sparkles" size={12} color={tint} />
-            <ThemedText style={[styles.suggestText, { color: text }]} numberOfLines={1}>
+            <Ionicons name="sparkles" size={12} color={brandColor} />
+            <ThemedText style={styles.suggestText} numberOfLines={1}>
               {s}
             </ThemedText>
           </TouchableOpacity>
@@ -127,7 +149,7 @@ export default function AISearch({ bookmarkedIds, onToggleBookmark }: Props) {
           contentInset={{ bottom: 28 }}
         />
       </View>
-    </View>
+    </ThemedView>
   );
 }
 
