@@ -1,290 +1,174 @@
-// src/app/(tabs)/JobCenterScreen.tsx
-import { Ionicons } from '@expo/vector-icons';
-import React, { useMemo, useState } from 'react';
-import { Image, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import React, { useMemo, useState } from "react";
+import { StyleSheet, View } from "react-native";
 
-import { Header } from '@/components/header';
-import BrowseCategories from '@/components/jobCenter/browseCategories';
-import FilterSheet, { FilterOptions } from '@/components/jobCenter/modals/FilterSheet';
-import RemoteJobs from '@/components/jobCenter/remoteJobs';
-import SearchBar from '@/components/jobCenter/searchBar';
-import SectionHeader from '@/components/jobCenter/sectionHeader';
-import TopCompanies from '@/components/jobCenter/topCompanies';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { CARD_BG, TEXT_MUTED } from '@/constants/colors';
-import { useThemeColor } from '@/hooks/use-theme-color';
+import { Header } from "@/components/header";
+import AISearch from "@/components/jobCenter/AISearch";
+import JobList from "@/components/jobCenter/JobList";
+import FilterSheet, { FilterOptions } from "@/components/jobCenter/modals/FilterSheet";
+import SearchBar from "@/components/jobCenter/searchBar";
+import TopTabs, { JobCenterTab } from "@/components/jobCenter/TopTabs";
+
+import { ThemedText } from "@/components/themed-text";
+import { ThemedView } from "@/components/themed-view";
+import { JOBS, Job } from "@/data/jobs";
+import { useThemeColor } from "@/hooks/use-theme-color";
 
 export default function JobCenterScreen() {
-  const handleCategory = (id: string) => {
-    console.log('Category pressed:', id);
-  };
+  const [activeTab, setActiveTab] = useState<JobCenterTab>("jobs");
 
   const [showFilters, setShowFilters] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+
   const [activeFilters, setActiveFilters] = useState<FilterOptions>({
-    category: undefined,
-    jobType: undefined,
-    location: undefined,
-    salaryUnit: 'Monthly',
-    salaryMin: '',
-    salaryMax: '',
+    category: "all",
+    jobType: "all",
+    experienceLevel: "all",
+    workMode: "all",
+    company: "all",
+    timePosted: "all",
+    location: "remote",
+    salaryUnit: "monthly",
+    salaryMin: "",
+    salaryMax: "",
   });
 
-  const handleFilterPress = () => {
-    setShowFilters(true);
-  };
+  // bookmarks
+  const [bookmarkedIds, setBookmarkedIds] = useState<Set<string>>(new Set());
+  const toggleBookmark = (id: string) =>
+    setBookmarkedIds((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
 
-  const handleApplyFilters = (filters: FilterOptions) => {
-    setActiveFilters(filters);
-    setShowFilters(false);
-    console.log('Applied filters:', filters);
-    // Here you would typically filter your job data
-  };
+  const filteredAllJobs = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
 
-  const handleCloseFilters = () => {
-    setShowFilters(false);
-  };
+    const withinTime = (job: Job) => {
+      const t = activeFilters.timePosted;
+      if (!t || t === "all") return true;
+      if (t === "24h") return job.postedDaysAgo <= 1;
+      if (t === "7d") return job.postedDaysAgo <= 7;
+      if (t === "30d") return job.postedDaysAgo <= 30;
+      return true;
+    };
 
-  const background = useThemeColor({}, 'background');
-  const surface = useThemeColor({ light: '#ffffff', dark: '#1f1f1f' }, 'background');
-  const text = useThemeColor({}, 'text');
-  const muted = useThemeColor({ light: TEXT_MUTED, dark: '#c7c7c7' }, 'text');
-  const brand = useThemeColor({}, 'tint');
-  const tagBackground = useThemeColor({ light: '#f8fafc', dark: '#252525' }, 'background');
-  const tagBorder = useThemeColor({ light: '#f1f5f9', dark: '#2f2f2f' }, 'background');
-  const tagAltBackground = useThemeColor({ light: '#fff8ee', dark: '#2a1f12' }, 'background');
-  const shadowColor = useThemeColor({ light: '#000000', dark: '#000000' }, 'background');
+    const min = Number(activeFilters.salaryMin || "");
+    const max = Number(activeFilters.salaryMax || "");
 
-  const palette = useMemo(
-    () => ({
-      background,
-      surface,
-      text,
-      muted,
-      brand,
-      tagBackground,
-      tagBorder,
-      tagAltBackground,
-      shadowColor,
-    }),
-    [background, surface, text, muted, brand, tagBackground, tagBorder, tagAltBackground, shadowColor],
+    return JOBS.filter((job) => {
+      if (activeFilters.category !== "all" && job.category !== activeFilters.category) return false;
+      if (activeFilters.jobType !== "all" && job.jobType !== activeFilters.jobType) return false;
+      if (activeFilters.experienceLevel !== "all" && job.experienceLevel !== activeFilters.experienceLevel) return false;
+      if (activeFilters.workMode !== "all" && job.workMode !== activeFilters.workMode) return false;
+
+      if (activeFilters.company !== "all") {
+        const companyMap: Record<string, string> = {
+          "techcorp-solutions": "TechCorp Solutions",
+          "global-marketing-inc": "Global Marketing Inc",
+          "data-insights-ltd": "Data Insights Ltd",
+          "salesforce-pro": "SalesForce Pro",
+          "creative-design-studio": "Creative Design Studio",
+          "project-solutions-co": "Project Solutions Co",
+          "content-creators-ltd": "Content Creators Ltd",
+          "customer-first-inc": "Customer First Inc",
+        };
+        if (job.company !== companyMap[activeFilters.company!]) return false;
+      }
+
+      if (!withinTime(job)) return false;
+
+      if (!Number.isNaN(min) && activeFilters.salaryMin && job.salaryMin < min) return false;
+      if (!Number.isNaN(max) && activeFilters.salaryMax && job.salaryMax > max) return false;
+
+      if (q.length) {
+        const blob = `${job.title} ${job.company} ${job.location} ${job.category} ${job.tags.join(" ")}`.toLowerCase();
+        if (!blob.includes(q)) return false;
+      }
+      return true;
+    });
+  }, [activeFilters, searchQuery]);
+
+  const savedJobs = useMemo(
+    () => filteredAllJobs.filter((j) => bookmarkedIds.has(j.id)),
+    [filteredAllJobs, bookmarkedIds]
   );
 
-  const styles = useMemo(
-    () =>
-      createStyles({
-        background: palette.background,
-        surface: palette.surface,
-        text: palette.text,
-        muted: palette.muted,
-        brand: palette.brand,
-        tagBackground: palette.tagBackground,
-        tagBorder: palette.tagBorder,
-        tagAltBackground: palette.tagAltBackground,
-        shadowColor: palette.shadowColor,
-      }),
-    [palette],
-  );
+  const onApplyFilters = (f: FilterOptions) => {
+    setActiveFilters(f);
+    setShowFilters(false);
+  };
+
+  const background = useThemeColor({}, "background");
 
   return (
-    <ThemedView style={styles.container}>
+    <ThemedView style={[styles.container, { backgroundColor: background }]}>
       <Header title="Job Centre" />
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <ThemedText style={styles.title}>Explore Jobs</ThemedText>
+      <TopTabs
+        active={activeTab}
+        onChange={setActiveTab}
+        jobsCount={filteredAllJobs.length}
+        savedCount={savedJobs.length}
+      />
 
-        <SearchBar onFilterPress={handleFilterPress} />
+      {/* Jobs & Saved use the classic search + filter bar */}
+      {activeTab !== "ai" && (
+        <SearchBar
+          query={searchQuery}
+          onQueryChange={setSearchQuery}
+          onFilterPress={() => setShowFilters(true)}
+        />
+      )}
 
-        <ThemedText style={styles.section}>Browse by category</ThemedText>
-        <BrowseCategories onPress={handleCategory} />
-
-        <SectionHeader title="Top Company" onPress={() => {}} />
-        <TopCompanies />
-
-        <SectionHeader title="Remote Jobs" onPress={() => {}} />
-        <RemoteJobs />
-
-        <SectionHeader title="Recommendation jobs" />
-        <View style={styles.recommendTile}>
-          <View style={styles.recommendRow}>
-            <View style={styles.companyInfo}>
-              <View style={styles.logoContainer}>
-                <Image source={require('@/assets/images/netflix.png')} style={styles.logo} />
-              </View>
-              <View style={styles.jobDetails}>
-                <ThemedText style={styles.company}>Netflix</ThemedText>
-                <ThemedText style={styles.jobTitle}>Game Developer</ThemedText>
-                <ThemedText style={styles.salary}>$1000-$1500/Month</ThemedText>
-              </View>
-            </View>
-            <TouchableOpacity style={styles.bookmarkBtn}>
-              <Ionicons name="bookmark-outline" size={24} color={palette.brand} />
-            </TouchableOpacity>
-          </View>
-          <View style={styles.tagsRow}>
-            <View style={styles.tag}>
-              <ThemedText style={styles.tagText}>Fulltime</ThemedText>
-            </View>
-            <View style={styles.tag}>
-              <ThemedText style={styles.tagText}>Remote</ThemedText>
-            </View>
-            <View style={styles.timeTag}>
-              <Ionicons name="time-outline" size={12} color={palette.muted} />
-              <ThemedText style={styles.timeText}>2 days ago</ThemedText>
-            </View>
-          </View>
-          <TouchableOpacity style={styles.applyButton}>
-            <ThemedText style={styles.applyText}>Apply now</ThemedText>
-          </TouchableOpacity>
+      {/* Count header */}
+      {activeTab !== "ai" && (
+        <View style={{ paddingHorizontal: 20, paddingTop: 12 }}>
+          <ThemedText style={styles.countTitle}>
+            {activeTab === "jobs"
+              ? `Available Jobs (${filteredAllJobs.length})`
+              : `Saved Jobs (${savedJobs.length})`}
+          </ThemedText>
         </View>
-      </ScrollView>
+      )}
+
+      <View style={{ flex: 1, marginTop: activeTab === "ai" ? 0 : 8 }}>
+        {activeTab === "jobs" && (
+          <JobList
+            jobs={filteredAllJobs}
+            bookmarkedIds={bookmarkedIds}
+            onToggleBookmark={toggleBookmark}
+            contentInset={{ bottom: 28 }}
+          />
+        )}
+
+        {activeTab === "saved" && (
+          <JobList
+            jobs={savedJobs}
+            bookmarkedIds={bookmarkedIds}
+            onToggleBookmark={toggleBookmark}
+            contentInset={{ bottom: 28 }}
+          />
+        )}
+
+        {activeTab === "ai" && (
+          <AISearch
+            bookmarkedIds={bookmarkedIds}
+            onToggleBookmark={toggleBookmark}
+          />
+        )}
+      </View>
+
       <FilterSheet
         visible={showFilters}
-        onClose={handleCloseFilters}
-        onApply={handleApplyFilters}
+        onClose={() => setShowFilters(false)}
+        onApply={onApplyFilters}
         initialFilters={activeFilters}
       />
     </ThemedView>
   );
 }
 
-const createStyles = (palette: {
-  background: string;
-  surface: string;
-  text: string;
-  muted: string;
-  brand: string;
-  tagBackground: string;
-  tagBorder: string;
-  tagAltBackground: string;
-  shadowColor: string;
-}) =>
-  StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: palette.background,
-    },
-    scrollContent: {
-      paddingHorizontal: 20,
-      paddingVertical: 20,
-      gap: 24,
-    },
-    title: {
-      fontSize: 28,
-      fontWeight: '700',
-      textAlign: 'center',
-      paddingBottom: 6,
-      marginTop: 6,
-      paddingTop: 10,
-      color: palette.text,
-    },
-    section: {
-      fontSize: 20,
-      fontWeight: '700',
-      marginTop: 12,
-      marginBottom: 12,
-      color: palette.text,
-    },
-    recommendTile: {
-      backgroundColor: palette.surface,
-      borderRadius: 20,
-      padding: 20,
-      shadowColor: palette.shadowColor,
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.1,
-      shadowRadius: 12,
-      elevation: 8,
-      gap: 20,
-    },
-    recommendRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'flex-start',
-      gap: 12,
-    },
-    companyInfo: {
-      flexDirection: 'row',
-      flex: 1,
-      gap: 12,
-    },
-    logoContainer: {
-      padding: 12,
-      borderRadius: 12,
-      backgroundColor: CARD_BG,
-      height: 60,
-      width: 60,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    logo: {
-      maxHeight: 30,
-      maxWidth: 30,
-      resizeMode: 'contain',
-    },
-    jobDetails: {
-      flexDirection: 'column',
-      flex: 1,
-      gap: 4,
-    },
-    company: {
-      color: palette.muted,
-      fontWeight: '600',
-      fontSize: 14,
-    },
-    jobTitle: {
-      fontWeight: '700',
-      fontSize: 18,
-      color: palette.text,
-    },
-    salary: {
-      color: palette.brand,
-      fontWeight: '600',
-      fontSize: 14,
-    },
-    bookmarkBtn: {
-      padding: 4,
-    },
-    tagsRow: {
-      flexDirection: 'row',
-      gap: 8,
-      flexWrap: 'wrap',
-    },
-    tag: {
-      paddingHorizontal: 12,
-      paddingVertical: 6,
-      borderRadius: 8,
-      backgroundColor: palette.tagBackground,
-      borderWidth: 1,
-      borderColor: palette.tagBorder,
-    },
-    timeTag: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      paddingHorizontal: 12,
-      paddingVertical: 6,
-      borderRadius: 8,
-      backgroundColor: palette.tagAltBackground,
-      gap: 4,
-    },
-    tagText: {
-      fontSize: 12,
-      color: palette.muted,
-      fontWeight: '500',
-    },
-    timeText: {
-      fontSize: 12,
-      color: palette.brand,
-      fontWeight: '500',
-    },
-    applyButton: {
-      backgroundColor: palette.brand,
-      paddingVertical: 12,
-      borderRadius: 12,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    applyText: {
-      color: '#ffffff',
-      fontSize: 16,
-      fontWeight: '700',
-    },
-  });
+const styles = StyleSheet.create({
+  container: { flex: 1 },
+  countTitle: { fontSize: 18, fontWeight: "700" },
+});

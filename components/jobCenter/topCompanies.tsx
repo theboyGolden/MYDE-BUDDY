@@ -1,7 +1,9 @@
 // src/components/jobCenter/topCompanies.tsx
 import { TEXT_MUTED } from '@/constants/colors';
+import { useRouter } from 'expo-router';
 import React from 'react';
 import { FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+
 
 type Company = { id: string; name: string; jobsOpen: number; logo: any; };
 
@@ -10,9 +12,12 @@ const DATA: Company[] = [
   { id: 'valve',   name: 'Valve Corporation', jobsOpen: 11, logo: { uri: 'https://i.imgur.com/3VgL5OQ.png' } },
 ];
 
+const router = useRouter();
+
 const handlePress = () => {
-    console.log("hii")
+    router.push('/company/companyDetails')
 };
+
 
 export default function TopCompanies() {
   return (

@@ -1,298 +1,111 @@
-// src/components/jobCenter/JobCard.tsx
-import { BRAND, GRADIENT_END, GRADIENT_START, TEXT_MUTED, WHITE } from '@/constants/colors';
-import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
-import React from 'react';
-import { Image, StyleSheet, Text, TouchableOpacity, View, ViewStyle } from 'react-native';
-
-export type Job = {
-  id: string;
-  company: string;
-  companyLogo: any;
-  title: string;
-  salary: string;
-  type: 'Fulltime' | 'Part time' | 'Remote' | 'Freelance';
-  location?: string;
-  posted: string;
-  bookmarked?: boolean;
-};
+import { ThemedText } from "@/components/themed-text";
+import { CARD_BG } from "@/constants/colors";
+import type { Job } from "@/data/jobs";
+import { useThemeColor } from "@/hooks/use-theme-color";
+import { Ionicons } from "@expo/vector-icons";
+import React from "react";
+import { Image, StyleSheet, TouchableOpacity, View } from "react-native";
 
 type Props = {
   job: Job;
-  onBookmark?: (id: string) => void;
-  onApply?: (id: string) => void;
-  style?: ViewStyle;
-  variant?: 'default' | 'compact';
+  isBookmarked: boolean;
+  onToggleBookmark: (id: string) => void;
 };
 
-export default function JobCard({ job, onBookmark, onApply, style, variant = 'default' }: Props) {
-  const isCompact = variant === 'compact';
+export default function JobCard({ job, isBookmarked, onToggleBookmark }: Props) {
+  const text = useThemeColor({}, "text");
+  const brand = useThemeColor({}, "tint");
+  const muted = useThemeColor({ light: "#64748b", dark: "#c7c7c7" }, "text");
+  const surface = useThemeColor({ light: "#ffffff", dark: "#1f1f1f" }, "background");
+  const tagBackground = useThemeColor({ light: "#f8fafc", dark: "#252525" }, "background");
+  const tagBorder = useThemeColor({ light: "#f1f5f9", dark: "#2f2f2f" }, "background");
+  const tagAltBackground = useThemeColor({ light: "#fff8ee", dark: "#2a1f12" }, "background");
+  const shadowColor = useThemeColor({ light: "#000", dark: "#000" }, "background");
 
   return (
-    <View style={[styles.card, isCompact && styles.compactCard, style]}>
-      {/* Header with Company Info and Bookmark */}
-      <View style={[styles.header, isCompact && styles.compactHeader]}>
-        <View style={styles.companySection}>
-          <View style={[styles.logoContainer, isCompact && styles.compactLogoContainer]}>
-            <Image 
-              source={job.companyLogo} 
-              style={[styles.logo, isCompact && styles.compactLogo]} 
-            />
+    <View
+      style={[
+        styles.card,
+        {
+          backgroundColor: surface,
+          shadowColor,
+        },
+      ]}
+    >
+      <View style={styles.row}>
+        <View style={styles.companyInfo}>
+          <View style={styles.logoContainer}>
+            <Image source={{ uri: job.logoUrl }} style={styles.logo} />
           </View>
-          <View style={styles.companyDetails}>
-            <Text style={[styles.companyName, isCompact && styles.compactCompanyName]} numberOfLines={1}>
-              {job.company}
-            </Text>
-            <Text style={[styles.jobTitle, isCompact && styles.compactJobTitle]} numberOfLines={1}>
-              {job.title}
-            </Text>
-            <Text style={[styles.salary, isCompact && styles.compactSalary]} numberOfLines={1}>
-              {job.salary}
-            </Text>
+          <View style={styles.jobDetails}>
+            <ThemedText style={[styles.company, { color: muted }]}>{job.company}</ThemedText>
+            <ThemedText style={[styles.title, { color: text }]}>{job.title}</ThemedText>
+            <ThemedText style={[styles.salary, { color: brand }]}>
+              {job.salaryUnit === "yearly" && `$${job.salaryMin.toLocaleString()} - $${job.salaryMax.toLocaleString()}/Year`}
+              {job.salaryUnit === "monthly" && `$${job.salaryMin} - $${job.salaryMax}/Month`}
+              {job.salaryUnit === "hourly" && `$${job.salaryMin} - $${job.salaryMax}/Hour`}
+            </ThemedText>
           </View>
         </View>
-        
-        <TouchableOpacity 
-          style={styles.bookmarkBtn}
-          onPress={() => onBookmark?.(job.id)}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-        >
-          <Ionicons 
-            name={job.bookmarked ? 'bookmark' : 'bookmark-outline'} 
-            size={isCompact ? 20 : 24} 
-            color={BRAND} 
-          />
+        <TouchableOpacity style={styles.bookmarkBtn} onPress={() => onToggleBookmark(job.id)}>
+          <Ionicons name={isBookmarked ? "bookmark" : "bookmark-outline"} size={24} color={brand} />
         </TouchableOpacity>
       </View>
 
-      {/* Tags Row */}
-      <View style={[styles.tagsRow, isCompact && styles.compactTagsRow]}>
-        <View style={[styles.tag, styles.typeTag]}>
-          <Text style={styles.tagText}>{job.type}</Text>
+      <View style={styles.tagsRow}>
+        <View style={[styles.tag, { backgroundColor: tagBackground, borderColor: tagBorder }]}>
+          <ThemedText style={[styles.tagText, { color: muted }]}>{job.jobType.replace("-", " ")}</ThemedText>
         </View>
-        
-        {job.location && (
-          <View style={[styles.tag, styles.locationTag]}>
-            <Ionicons name="location-outline" size={10} color={TEXT_MUTED} />
-            <Text style={styles.tagText}>{job.location}</Text>
-          </View>
-        )}
-        
-        <View style={[styles.tag, styles.timeTag]}>
-          <Ionicons name="time-outline" size={10} color={BRAND} />
-          <Text style={[styles.tagText, styles.timeText]}>{job.posted}</Text>
+        <View style={[styles.tag, { backgroundColor: tagBackground, borderColor: tagBorder }]}>
+          <ThemedText style={[styles.tagText, { color: muted }]}>{job.workMode}</ThemedText>
+        </View>
+        <View style={[styles.timeTag, { backgroundColor: tagAltBackground }]}>
+          <Ionicons name="time-outline" size={12} color={muted} />
+          <ThemedText style={[styles.timeText, { color: brand }]}>{job.postedDaysAgo} days ago</ThemedText>
         </View>
       </View>
 
-      {/* Apply Button */}
-      <TouchableOpacity 
-        style={[styles.applyButton, isCompact && styles.compactApplyButton]}
-        onPress={() => onApply?.(job.id)}
-        activeOpacity={0.8}
-      >
-        <LinearGradient
-          colors={[GRADIENT_START, GRADIENT_END]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={[styles.gradient, isCompact && styles.compactGradient]}
-        >
-          <Text style={[styles.applyText, isCompact && styles.compactApplyText]}>
-            Apply Now
-          </Text>
-          <Ionicons name="arrow-forward" size={isCompact ? 14 : 16} color={WHITE} />
-        </LinearGradient>
+      <TouchableOpacity style={[styles.applyButton, { backgroundColor: brand }]}>
+        <ThemedText style={styles.applyText}>Apply now</ThemedText>
       </TouchableOpacity>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  // Card Container
   card: {
-    backgroundColor: WHITE,
     borderRadius: 20,
     padding: 20,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 8,
-    },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
-    shadowRadius: 16,
-    elevation: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(0, 0, 0, 0.05)',
+    shadowRadius: 12,
+    elevation: 8,
+    gap: 20,
   },
-  compactCard: {
-    padding: 16,
-    borderRadius: 16,
-    minWidth: 280,
-  },
-
-  // Header Section
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 16,
-  },
-  compactHeader: {
-    marginBottom: 12,
-  },
-  companySection: {
-    flexDirection: 'row',
-    flex: 1,
-    alignItems: 'flex-start',
-  },
-
-  // Logo
+  row: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", gap: 12 },
+  companyInfo: { flexDirection: "row", flex: 1, gap: 12 },
   logoContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: 14,
-    backgroundColor: '#f8fafc',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-    borderWidth: 1,
-    borderColor: '#f1f5f9',
-  },
-  compactLogoContainer: {
-    width: 44,
-    height: 44,
+    padding: 12,
     borderRadius: 12,
-    marginRight: 10,
+    backgroundColor: CARD_BG,
+    height: 60,
+    width: 60,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  logo: {
-    width: 32,
-    height: 32,
-    resizeMode: 'contain',
-  },
-  compactLogo: {
-    width: 24,
-    height: 24,
-  },
+  logo: { height: 30, width: 30, resizeMode: "contain" },
+  jobDetails: { flexDirection: "column", flex: 1, gap: 4 },
+  company: { fontWeight: "600", fontSize: 14 },
+  title: { fontWeight: "700", fontSize: 18 },
+  salary: { fontWeight: "600", fontSize: 14 },
+  bookmarkBtn: { padding: 4 },
 
-  // Company Details
-  companyDetails: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-  companyName: {
-    fontSize: 14,
-    color: TEXT_MUTED,
-    fontWeight: '600',
-    marginBottom: 2,
-  },
-  compactCompanyName: {
-    fontSize: 12,
-  },
-  jobTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1f2937',
-    marginBottom: 4,
-  },
-  compactJobTitle: {
-    fontSize: 16,
-    marginBottom: 2,
-  },
-  salary: {
-    fontSize: 15,
-    color: BRAND,
-    fontWeight: '700',
-  },
-  compactSalary: {
-    fontSize: 13,
-  },
+  tagsRow: { flexDirection: "row", gap: 8, flexWrap: "wrap" },
+  tag: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, borderWidth: 1 },
+  timeTag: { flexDirection: "row", alignItems: "center", paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, gap: 4 },
+  tagText: { fontSize: 12, fontWeight: "500" },
+  timeText: { fontSize: 12, fontWeight: "500" },
 
-  // Bookmark
-  bookmarkBtn: {
-    padding: 4,
-    marginLeft: 8,
-  },
-
-  // Tags Row
-  tagsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginBottom: 20,
-  },
-  compactTagsRow: {
-    marginBottom: 16,
-    gap: 6,
-  },
-  tag: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 8,
-    gap: 4,
-  },
-  typeTag: {
-    backgroundColor: '#f0f9ff',
-    borderWidth: 1,
-    borderColor: '#e0f2fe',
-  },
-  locationTag: {
-    backgroundColor: '#f8fafc',
-    borderWidth: 1,
-    borderColor: '#f1f5f9',
-  },
-  timeTag: {
-    backgroundColor: '#fff8ee',
-    borderWidth: 1,
-    borderColor: '#fed7aa',
-  },
-  tagText: {
-    fontSize: 11,
-    color: TEXT_MUTED,
-    fontWeight: '600',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  timeText: {
-    color: BRAND,
-  },
-
-  // Apply Button
-  applyButton: {
-    borderRadius: 12,
-    overflow: 'hidden',
-    shadowColor: BRAND,
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
-  },
-  compactApplyButton: {
-    borderRadius: 10,
-  },
-  gradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    gap: 8,
-  },
-  compactGradient: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    gap: 6,
-  },
-  applyText: {
-    color: WHITE,
-    fontSize: 16,
-    fontWeight: '700',
-    letterSpacing: 0.5,
-  },
-  compactApplyText: {
-    fontSize: 14,
-  },
+  applyButton: { paddingVertical: 12, borderRadius: 12, alignItems: "center", justifyContent: "center" },
+  applyText: { color: "#fff", fontSize: 16, fontWeight: "700" },
 });

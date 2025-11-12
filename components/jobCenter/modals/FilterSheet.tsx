@@ -3,30 +3,36 @@ import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
 import React, { useEffect, useRef, useState } from "react";
 import {
-    Animated,
-    Easing,
-    KeyboardAvoidingView,
-    Modal,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Animated,
+  Easing,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 import {
-    BRAND,
-    GRADIENT_END,
-    GRADIENT_START,
-    TEXT_MUTED,
-    WHITE,
+  BRAND,
+  GRADIENT_END,
+  GRADIENT_START,
+  TEXT_MUTED,
+  WHITE,
 } from "@/constants/colors";
+
+/* ------------------- TYPES --------------------- */
 
 export type FilterOptions = {
   category?: string;
   jobType?: string;
+  experienceLevel?: string;
+  workMode?: string;
+  company?: string;
+  timePosted?: string;
   location?: string;
   salaryUnit?: string;
   salaryMin?: string;
@@ -42,22 +48,68 @@ type Props = {
 
 type Option = { label: string; value: string };
 
-// Dropdown options
+/* ------------------- DROPDOWN DATA (from screenshots) --------------------- */
+
+// Categories
 const CATEGORIES: Option[] = [
-  { label: "UI Designer", value: "ui-designer" },
-  { label: "Backend Developer", value: "backend-dev" },
-  { label: "Frontend Developer", value: "frontend-dev" },
-  { label: "Mobile Developer", value: "mobile-dev" },
-  { label: "Data Analyst", value: "data-analyst" },
+  { label: "All Categories", value: "all" },
+  { label: "Technology", value: "technology" },
+  { label: "Marketing", value: "marketing" },
+  { label: "Sales", value: "sales" },
+  { label: "Design", value: "design" },
+  { label: "Management", value: "management" },
+  { label: "Customer Service", value: "customer-service" },
 ];
 
+// Job Types (header shows “All Job Types”; keeping a practical set)
 const JOB_TYPES: Option[] = [
+  { label: "All Job Types", value: "all" },
   { label: "Full Time", value: "full-time" },
   { label: "Part Time", value: "part-time" },
   { label: "Contract", value: "contract" },
   { label: "Freelance", value: "freelance" },
+  { label: "Internship", value: "internship" },
 ];
 
+// Experience levels
+const EXPERIENCE_LEVELS: Option[] = [
+  { label: "All Experience Levels", value: "all" },
+  { label: "Entry Level", value: "entry" },
+  { label: "Mid Level", value: "mid" },
+  { label: "Senior Level", value: "senior" },
+  { label: "Executive", value: "executive" },
+];
+
+// Work modes
+const WORK_MODES: Option[] = [
+  { label: "All Work Modes", value: "all" },
+  { label: "Onsite", value: "onsite" },
+  { label: "Remote", value: "remote" },
+  { label: "Hybrid", value: "hybrid" },
+];
+
+// Companies
+const COMPANIES: Option[] = [
+  { label: "All Companies", value: "all" },
+  { label: "TechCorp Solutions", value: "techcorp-solutions" },
+  { label: "Global Marketing Inc", value: "global-marketing-inc" },
+  { label: "Data Insights Ltd", value: "data-insights-ltd" },
+  { label: "SalesForce Pro", value: "salesforce-pro" },
+  { label: "Creative Design Studio", value: "creative-design-studio" },
+  { label: "Project Solutions Co", value: "project-solutions-co" },
+  { label: "Content Creators Ltd", value: "content-creators-ltd" },
+  { label: "Customer First Inc", value: "customer-first-inc" },
+];
+
+// Time posted
+const TIME_POSTED: Option[] = [
+  { label: "All Time", value: "all" },
+  { label: "Last 24 hours", value: "24h" },
+  { label: "Last 7 days", value: "7d" },
+  { label: "Last 30 days", value: "30d" },
+];
+
+// Locations (you already had these)
 const LOCATIONS: Option[] = [
   { label: "Remote", value: "remote" },
   { label: "United States", value: "us" },
@@ -67,11 +119,14 @@ const LOCATIONS: Option[] = [
   { label: "Switzerland", value: "switzerland" },
 ];
 
+// Salary units (keep your original set)
 const SALARY_UNITS: Option[] = [
   { label: "Monthly", value: "monthly" },
   { label: "Yearly", value: "yearly" },
   { label: "Hourly", value: "hourly" },
 ];
+
+/* ------------------- COMPONENT --------------------- */
 
 export default function FilterSheet({
   visible,
@@ -79,15 +134,23 @@ export default function FilterSheet({
   onApply,
   initialFilters,
 }: Props) {
+  // ✅ Default selected values (so each dropdown shows something by default)
   const [filters, setFilters] = useState<FilterOptions>({
+    category: CATEGORIES[0].value,
+    jobType: JOB_TYPES[0].value,
+    experienceLevel: EXPERIENCE_LEVELS[0].value,
+    workMode: WORK_MODES[0].value,
+    company: COMPANIES[0].value,
+    timePosted: TIME_POSTED[0].value,
+    location: LOCATIONS[0].value, // optional default
     salaryUnit: "monthly",
     salaryMin: "",
     salaryMax: "",
     ...initialFilters,
   });
 
-  // Track which dropdown is open
-  const [open, setOpen] = useState<null | string>(null);
+  // Which dropdown is open
+  const [open, setOpen] = useState<null | keyof FilterOptions>(null);
 
   // bottom-sheet animation
   const slide = useRef(new Animated.Value(0)).current;
@@ -111,7 +174,7 @@ export default function FilterSheet({
   const labelFor = (value: string | undefined, arr: Option[]) =>
     arr.find((x) => x.value === value)?.label || "Select";
 
-  // ✅ Clean, small dropdown (keeps exact design)
+  // Reusable dropdown (same design)
   const Dropdown = ({
     label,
     type,
@@ -130,13 +193,9 @@ export default function FilterSheet({
       <View style={[styles.dropdownWrapper, { zIndex: z }]}>
         <Text style={styles.sectionLabel}>{label}</Text>
 
-        {/* Trigger */}
         <TouchableOpacity
           onPress={() => setOpen(isOpen ? null : type)}
-          style={[
-            styles.dropdownButton,
-            isOpen && styles.dropdownButtonActive,
-          ]}
+          style={[styles.dropdownButton, isOpen && styles.dropdownButtonActive]}
           activeOpacity={0.85}
         >
           <Text
@@ -154,7 +213,6 @@ export default function FilterSheet({
           />
         </TouchableOpacity>
 
-        {/* Floating dropdown menu */}
         {isOpen && (
           <View style={[styles.dropdownMenu, { zIndex: z + 50 }]}>
             <ScrollView>
@@ -199,9 +257,13 @@ export default function FilterSheet({
 
   const handleClear = () => {
     setFilters({
-      category: undefined,
-      jobType: undefined,
-      location: undefined,
+      category: CATEGORIES[0].value,
+      jobType: JOB_TYPES[0].value,
+      experienceLevel: EXPERIENCE_LEVELS[0].value,
+      workMode: WORK_MODES[0].value,
+      company: COMPANIES[0].value,
+      timePosted: TIME_POSTED[0].value,
+      location: LOCATIONS[0].value,
       salaryUnit: "monthly",
       salaryMin: "",
       salaryMax: "",
@@ -221,9 +283,7 @@ export default function FilterSheet({
         style={styles.container}
       >
         {/* Bottom sheet */}
-        <Animated.View
-          style={[styles.sheet, { transform: [{ translateY }] }]}
-        >
+        <Animated.View style={[styles.sheet, { transform: [{ translateY }] }]}>
           {/* Header */}
           <View style={styles.header}>
             <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
@@ -237,33 +297,19 @@ export default function FilterSheet({
             contentContainerStyle={styles.contentContainer}
             keyboardShouldPersistTaps="handled"
           >
-            {/* Dropdowns */}
-            <Dropdown
-              label="Job Category"
-              type="category"
-              options={CATEGORIES}
-              z={9999}
-            />
+            <Dropdown label="Job Category" type="category" options={CATEGORIES} z={9999} />
+            <Dropdown label="All Job Types" type="jobType" options={JOB_TYPES} z={9998} />
+            <Dropdown label="All Experience Levels" type="experienceLevel" options={EXPERIENCE_LEVELS} z={9997} />
+            <Dropdown label="All Work Modes" type="workMode" options={WORK_MODES} z={9996} />
+            <Dropdown label="All Companies" type="company" options={COMPANIES} z={9995} />
+            <Dropdown label="Time" type="timePosted" options={TIME_POSTED} z={9994} />
+            <Dropdown label="Location" type="location" options={LOCATIONS} z={9993} />
 
-            <Dropdown
-              label="Job Type"
-              type="jobType"
-              options={JOB_TYPES}
-              z={9998}
-            />
-
-            <Dropdown
-              label="Location"
-              type="location"
-              options={LOCATIONS}
-              z={9997}
-            />
-
-            {/* ✅ Salary Unit dropdown (matches your design) */}
+            {/* Salary header + unit dropdown */}
             <View style={styles.salaryHeaderRow}>
               <Text style={styles.sectionLabel}>Salary</Text>
 
-              <View style={{ zIndex: 9996 }}>
+              <View style={{ zIndex: 9992 }}>
                 <TouchableOpacity
                   onPress={() => setOpen(open === "salaryUnit" ? null : "salaryUnit")}
                   style={styles.salaryUnitBtn}
@@ -285,8 +331,7 @@ export default function FilterSheet({
                         key={opt.value}
                         style={[
                           styles.salaryUnitItem,
-                          filters.salaryUnit === opt.value &&
-                            styles.salaryUnitItemSelected,
+                          filters.salaryUnit === opt.value && styles.salaryUnitItemSelected,
                         ]}
                         onPress={() => {
                           setFilters((f) => ({ ...f, salaryUnit: opt.value }));
@@ -296,8 +341,7 @@ export default function FilterSheet({
                         <Text
                           style={[
                             styles.salaryUnitItemText,
-                            filters.salaryUnit === opt.value &&
-                              styles.salaryUnitItemTextSelected,
+                            filters.salaryUnit === opt.value && styles.salaryUnitItemTextSelected,
                           ]}
                         >
                           {opt.label}
@@ -313,7 +357,7 @@ export default function FilterSheet({
               </View>
             </View>
 
-            {/* ✅ Salary Min/Max (unchanged design) */}
+            {/* Salary Min/Max */}
             <View style={styles.salaryRow}>
               <View style={{ flex: 1 }}>
                 <View style={styles.salaryFieldBox}>
@@ -322,9 +366,7 @@ export default function FilterSheet({
                     keyboardType="numeric"
                     placeholder="150"
                     value={filters.salaryMin}
-                    onChangeText={(t) =>
-                      setFilters((f) => ({ ...f, salaryMin: t }))
-                    }
+                    onChangeText={(t) => setFilters((f) => ({ ...f, salaryMin: t }))}
                     style={styles.salaryInput}
                   />
                 </View>
@@ -338,9 +380,7 @@ export default function FilterSheet({
                     keyboardType="numeric"
                     placeholder="350"
                     value={filters.salaryMax}
-                    onChangeText={(t) =>
-                      setFilters((f) => ({ ...f, salaryMax: t }))
-                    }
+                    onChangeText={(t) => setFilters((f) => ({ ...f, salaryMax: t }))}
                     style={styles.salaryInput}
                   />
                 </View>
@@ -351,15 +391,8 @@ export default function FilterSheet({
 
           {/* Footer */}
           <View style={styles.footer}>
-            <TouchableOpacity
-              style={styles.applyBtn}
-              onPress={handleApply}
-              activeOpacity={0.85}
-            >
-              <LinearGradient
-                colors={[GRADIENT_START, GRADIENT_END]}
-                style={styles.applyGradient}
-              >
+            <TouchableOpacity style={styles.applyBtn} onPress={handleApply} activeOpacity={0.85}>
+              <LinearGradient colors={[GRADIENT_START, GRADIENT_END]} style={styles.applyGradient}>
                 <Text style={styles.applyText}>Apply Filters</Text>
               </LinearGradient>
             </TouchableOpacity>
@@ -411,8 +444,8 @@ const styles = StyleSheet.create({
 
   contentContainer: {
     paddingHorizontal: 20,
-    paddingVertical:30,
-    paddingBottom:70,
+    paddingVertical: 30,
+    paddingBottom: 70,
   },
 
   /* Dropdowns */
@@ -487,7 +520,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
 
-  /* SALARY TYPE (VERY SMALL DROPDOWN) */
+  /* Salary */
   salaryHeaderRow: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -499,12 +532,9 @@ const styles = StyleSheet.create({
   salaryUnitBtn: {
     flexDirection: "row",
     alignItems: "center",
-    //backgroundColor: "#fff8ee",
     paddingHorizontal: 14,
     paddingVertical: 6,
     borderRadius: 8,
-    //borderWidth: 1,
-    //borderColor: "#fcd9a4",
   },
   salaryUnitText: {
     color: BRAND,
@@ -544,7 +574,6 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
 
-  /* SALARY MIN/MAX FIELDS */
   salaryRow: {
     flexDirection: "row",
     gap: 12,
@@ -575,7 +604,7 @@ const styles = StyleSheet.create({
     color: TEXT_MUTED,
   },
 
-  /* FOOTER */
+  /* Footer */
   footer: {
     paddingHorizontal: 20,
     paddingBottom: 28,
