@@ -11,6 +11,8 @@ import {
   View,
 } from 'react-native';
 
+import ChatFilterSheet, { ChatFilterOptions } from '@/components/chat-filter-sheet';
+import CreateChatModal, { User } from '@/components/create-chat-modal';
 import { Header } from '@/components/header';
 import { ThemedText } from '@/components/themed-text';
 import { useFollowing } from '@/contexts/following-context';
@@ -582,7 +584,10 @@ const RequestsSection = ({ styles, palette }: SectionProps) => {
 
 const ChatSection = ({ styles, palette }: SectionProps) => {
   const router = useRouter();
-  const chats = [
+  const [showFilters, setShowFilters] = useState(false);
+  const [showCreateChat, setShowCreateChat] = useState(false);
+  const [filters, setFilters] = useState<ChatFilterOptions>({});
+  const [chats, setChats] = useState([
     {
       id: '1',
       name: 'Richar Kandowen',
@@ -671,7 +676,41 @@ const ChatSection = ({ styles, palette }: SectionProps) => {
         },
       ],
     },
-  ];
+  ]);
+
+  const handleApplyFilters = (appliedFilters: ChatFilterOptions) => {
+    setFilters(appliedFilters);
+    // TODO: Apply filters to chat list
+  };
+
+  const handleSelectUser = (user: User) => {
+    // Create a new chat with the selected user
+    const chatId = `chat-${Date.now()}`;
+    const newChat = {
+      id: chatId,
+      name: user.name,
+      message: 'Start a conversation...',
+      time: 'Now',
+      unreadCount: 0,
+      avatar: user.avatar,
+      messages: [],
+    };
+    
+    // Add the new chat to the beginning of the list
+    setChats((prev) => [newChat, ...prev]);
+    
+    // Navigate to the new chat with user info as params
+    router.push({
+      pathname: '/chat/[id]',
+      params: { 
+        id: chatId,
+        name: user.name,
+        avatar: user.avatar,
+        status: user.status,
+      },
+    });
+  };
+
   return (
     <View style={styles.chatWrapper}>
       <View style={styles.chatHeader}>
@@ -683,10 +722,20 @@ const ChatSection = ({ styles, palette }: SectionProps) => {
             style={styles.searchInput}
           />
         </View>
-        <TouchableOpacity style={styles.filterButton} activeOpacity={0.75}>
+        <TouchableOpacity
+          style={styles.filterButton}
+          activeOpacity={0.75}
+          onPress={() => setShowFilters(true)}>
           <MaterialIcons name="tune" size={20} color={palette.surface} />
         </TouchableOpacity>
       </View>
+
+      <ChatFilterSheet
+        visible={showFilters}
+        onClose={() => setShowFilters(false)}
+        onApply={handleApplyFilters}
+        initialFilters={filters}
+      />
 
       <View style={styles.chatList}>
         {chats.map((chat) => {
@@ -719,9 +768,18 @@ const ChatSection = ({ styles, palette }: SectionProps) => {
         })}
       </View>
 
-      <TouchableOpacity style={styles.fab} activeOpacity={0.75}>
+      <TouchableOpacity
+        style={styles.fab}
+        activeOpacity={0.75}
+        onPress={() => setShowCreateChat(true)}>
         <MaterialIcons name="add" size={24} color={palette.surface} />
       </TouchableOpacity>
+
+      <CreateChatModal
+        visible={showCreateChat}
+        onClose={() => setShowCreateChat(false)}
+        onSelectUser={handleSelectUser}
+      />
     </View>
   );
 };

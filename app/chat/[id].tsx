@@ -1,14 +1,17 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
-    Image,
-    ScrollView,
-    StyleSheet,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -113,17 +116,78 @@ const CHAT_DATA: Record<string, ChatDetail> = {
 };
 
 export default function ChatDetailScreen() {
-  const { id } = useLocalSearchParams<{ id?: string }>();
+  const { id, name, avatar, status } = useLocalSearchParams<{ 
+    id?: string; 
+    name?: string; 
+    avatar?: string; 
+    status?: string;
+  }>();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const palette = useChatPalette();
   const styles = useMemo(() => createStyles(palette), [palette]);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [messageText, setMessageText] = useState('');
+  const scrollViewRef = useRef<ScrollView>(null);
 
   const chat = id ? CHAT_DATA[String(id)] : undefined;
+  const [messages, setMessages] = useState<Message[]>(chat?.messages || []);
+  
+  // Handle new chats that don't exist in CHAT_DATA
+  const isNewChat = id && !chat && id.startsWith('chat-');
 
-  if (!chat) {
+  // Update messages when chat changes
+  useEffect(() => {
+    if (chat) {
+      setMessages(chat.messages);
+    }
+  }, [chat?.id]);
+
+  // Scroll to bottom when messages change
+  useEffect(() => {
+    setTimeout(() => {
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    }, 100);
+  }, [messages]);
+
+  // Format time helper
+  const getCurrentTime = () => {
+    const now = new Date();
+    const hours = now.getHours();
+    const minutes = now.getMinutes();
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    const displayHours = hours % 12 || 12;
+    const displayMinutes = minutes < 10 ? `0${minutes}` : minutes;
+    return `${displayHours}:${displayMinutes} ${ampm}`;
+  };
+
+  // Handle send message
+  const handleSendMessage = () => {
+    if (messageText.trim() === '') return;
+
+    const newMessage: Message = {
+      id: `msg-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+      type: 'sent',
+      text: messageText.trim(),
+      time: getCurrentTime(),
+    };
+
+    setMessages((prev) => [...prev, newMessage]);
+    setMessageText('');
+  };
+
+  // For new chats, create a default chat object using params
+  const displayChat = chat || (isNewChat ? {
+    id: id || '',
+    name: name || 'New Chat',
+    avatar: avatar || 'https://randomuser.me/api/portraits/men/45.jpg',
+    status: (status as 'Online' | 'Offline') || 'Online',
+    messages: [],
+  } : undefined);
+
+  if (!displayChat) {
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, { paddingTop: insets.top + 16 }]}>
         <View style={styles.header}>
           <TouchableOpacity
             style={styles.backButton}
@@ -143,115 +207,136 @@ export default function ChatDetailScreen() {
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => {
-            setIsMenuOpen(false);
-            router.back();
-          }}
-          accessibilityLabel="Go back"
-          accessibilityRole="button"
-          activeOpacity={0.7}>
-          <MaterialIcons name="arrow-back-ios-new" size={20} color={palette.text} />
-        </TouchableOpacity>
+    <View style={styles.keyboardAvoidingView}>
+      <View style={[styles.container, { paddingTop: insets.top + 16 }]}>
+        <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => {
+              setIsMenuOpen(false);
+              router.back();
+            }}
+            accessibilityLabel="Go back"
+            accessibilityRole="button"
+            activeOpacity={0.7}>
+            <MaterialIcons name="arrow-back-ios-new" size={20} color={palette.text} />
+          </TouchableOpacity>
 
         <View style={styles.participantInfo}>
-          <Image source={{ uri: chat.avatar }} style={styles.avatar} />
+          <Image source={{ uri: displayChat.avatar }} style={styles.avatar} />
           <View>
-            <ThemedText style={styles.name}>{chat.name}</ThemedText>
+            <ThemedText style={styles.name}>{displayChat.name}</ThemedText>
             <View style={styles.statusRow}>
               <View
                 style={[
                   styles.statusDot,
-                  { backgroundColor: chat.status === 'Online' ? palette.tint : palette.mutedText },
+                  { backgroundColor: displayChat.status === 'Online' ? palette.tint : palette.mutedText },
                 ]}
               />
-              <ThemedText style={styles.statusText}>{chat.status}</ThemedText>
+              <ThemedText style={styles.statusText}>{displayChat.status}</ThemedText>
             </View>
           </View>
         </View>
 
-        <View style={styles.menuWrapper}>
-          <TouchableOpacity
-            style={styles.menuButton}
-            onPress={() => setIsMenuOpen((prev) => !prev)}
-            accessibilityLabel="Chat options"
-            accessibilityRole="button"
-            activeOpacity={0.7}>
-            <MaterialIcons name="more-vert" size={22} color={palette.text} />
-          </TouchableOpacity>
+          <View style={styles.menuWrapper}>
+            <TouchableOpacity
+              style={styles.menuButton}
+              onPress={() => setIsMenuOpen((prev) => !prev)}
+              accessibilityLabel="Chat options"
+              accessibilityRole="button"
+              activeOpacity={0.7}>
+              <MaterialIcons name="more-vert" size={22} color={palette.text} />
+            </TouchableOpacity>
 
-          {isMenuOpen && (
-            <View style={styles.menuDropdown}>
-              <TouchableOpacity
-                style={styles.menuItem}
-                onPress={() => setIsMenuOpen(false)}
-                activeOpacity={0.7}>
-                <MaterialIcons name="call" size={18} color={palette.text} />
-                <ThemedText style={styles.menuItemText}>Voice Call</ThemedText>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.menuItem, styles.menuItemActive]}
-                onPress={() => setIsMenuOpen(false)}
-                activeOpacity={0.7}>
-                <MaterialIcons name="videocam" size={18} color={palette.tint} />
-                <ThemedText style={[styles.menuItemText, styles.menuItemTextActive]}>
-                  Video Call
-                </ThemedText>
-              </TouchableOpacity>
-            </View>
-          )}
-        </View>
-      </View>
-
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        style={styles.thread}
-        contentContainerStyle={styles.threadContent}>
-        {chat.messages.map((message) => {
-          const isSent = message.type === 'sent';
-          return (
-            <View
-              key={message.id}
-              style={[styles.messageRow, isSent ? styles.messageRowSent : styles.messageRowReceived]}>
-              {!isSent && <Image source={{ uri: chat.avatar }} style={styles.messageAvatar} />}
-
-              <View style={styles.messageContent}>
-                <View style={[styles.messageBubble, isSent ? styles.messageBubbleSent : styles.messageBubbleReceived]}>
-                  <ThemedText
-                    style={[styles.messageText, isSent ? styles.messageTextSent : styles.messageTextReceived]}>
-                    {message.text}
+            {isMenuOpen && (
+              <View style={styles.menuDropdown}>
+                <TouchableOpacity
+                  style={styles.menuItem}
+                  onPress={() => setIsMenuOpen(false)}
+                  activeOpacity={0.7}>
+                  <MaterialIcons name="call" size={18} color={palette.text} />
+                  <ThemedText style={styles.menuItemText}>Voice Call</ThemedText>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.menuItem, styles.menuItemActive]}
+                  onPress={() => setIsMenuOpen(false)}
+                  activeOpacity={0.7}>
+                  <MaterialIcons name="videocam" size={18} color={palette.tint} />
+                  <ThemedText style={[styles.menuItemText, styles.menuItemTextActive]}>
+                    Video Call
                   </ThemedText>
-                </View>
-                <ThemedText style={styles.messageTime}>{message.time}</ThemedText>
+                </TouchableOpacity>
               </View>
+            )}
+          </View>
+        </View>
 
-              {isSent && (
-                <Image
-                  source={{ uri: 'https://randomuser.me/api/portraits/men/45.jpg' }}
-                  style={styles.messageAvatarSmall}
-                />
-              )}
-            </View>
-          );
-        })}
-      </ScrollView>
+        <ScrollView
+          ref={scrollViewRef}
+          showsVerticalScrollIndicator={false}
+          style={styles.thread}
+          contentContainerStyle={styles.threadContent}
+          keyboardShouldPersistTaps="handled">
+          {messages.map((message) => {
+            const isSent = message.type === 'sent';
+            return (
+              <View
+                key={message.id}
+              style={[styles.messageRow, isSent ? styles.messageRowSent : styles.messageRowReceived]}>
+              {!isSent && <Image source={{ uri: displayChat.avatar }} style={styles.messageAvatar} />}
 
-      <View style={styles.composer}>
-        <TouchableOpacity style={styles.composerAction} activeOpacity={0.7}>
-          <MaterialIcons name="insert-photo" size={22} color={palette.tint} />
-        </TouchableOpacity>
-        <TextInput
-          placeholder="Message"
-          placeholderTextColor={palette.mutedText}
-          style={styles.composerInput}
-        />
-        <TouchableOpacity style={styles.composerSend} activeOpacity={0.7}>
-          <MaterialIcons name="send" size={20} color={palette.surface} />
-        </TouchableOpacity>
+                <View style={styles.messageContent}>
+                  <View style={[styles.messageBubble, isSent ? styles.messageBubbleSent : styles.messageBubbleReceived]}>
+                    <ThemedText
+                      style={[styles.messageText, isSent ? styles.messageTextSent : styles.messageTextReceived]}>
+                      {message.text}
+                    </ThemedText>
+                  </View>
+                  <ThemedText style={styles.messageTime}>{message.time}</ThemedText>
+                </View>
+
+                {isSent && (
+                  <Image
+                    source={{ uri: 'https://randomuser.me/api/portraits/men/45.jpg' }}
+                    style={styles.messageAvatarSmall}
+                  />
+                )}
+              </View>
+            );
+          })}
+        </ScrollView>
       </View>
+
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top + 60 : 0}>
+        <View style={[styles.composer, { marginBottom: insets.bottom, paddingBottom: 12 }]}>
+          <TouchableOpacity style={styles.composerAction} activeOpacity={0.7}>
+            <MaterialIcons name="insert-photo" size={22} color={palette.tint} />
+          </TouchableOpacity>
+          <TextInput
+            placeholder="Message"
+            placeholderTextColor={palette.mutedText}
+            style={styles.composerInput}
+            value={messageText}
+            onChangeText={setMessageText}
+            onSubmitEditing={handleSendMessage}
+            returnKeyType="send"
+            multiline
+          />
+          <TouchableOpacity
+            style={styles.composerSend}
+            activeOpacity={0.7}
+            onPress={handleSendMessage}
+            disabled={messageText.trim() === ''}>
+            <MaterialIcons
+              name="send"
+              size={20}
+              color={messageText.trim() === '' ? palette.mutedText : palette.surface}
+            />
+          </TouchableOpacity>
+        </View>
+      </KeyboardAvoidingView>
     </View>
   );
 }
@@ -279,12 +364,13 @@ function useChatPalette() {
 
 function createStyles(palette: ChatPalette) {
   return StyleSheet.create({
+    keyboardAvoidingView: {
+      flex: 1,
+    },
     container: {
       flex: 1,
       backgroundColor: palette.background,
       paddingHorizontal: 20,
-      paddingTop: 16,
-      paddingBottom: 24,
     },
     header: {
       flexDirection: 'row',

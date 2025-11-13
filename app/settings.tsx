@@ -31,6 +31,19 @@ export default function SettingsScreen() {
     { light: '#ffffff', dark: '#1a1a1a' },
     'background'
   );
+  const textColor = useThemeColor({}, 'text');
+  const dialogOverlayColor = useThemeColor(
+    { light: 'rgba(0, 0, 0, 0.5)', dark: 'rgba(0, 0, 0, 0.7)' },
+    'background'
+  );
+  const dialogCloseBg = useThemeColor(
+    { light: 'rgba(0, 0, 0, 0.05)', dark: 'rgba(255, 255, 255, 0.1)' },
+    'background'
+  );
+  const brandColor = useThemeColor(
+    { light: '#e0971d', dark: '#e0971d' },
+    'tint'
+  );
 
   return (
     <View style={[styles.container, { backgroundColor }]}>
@@ -126,10 +139,10 @@ export default function SettingsScreen() {
       </ScrollView>
 
       {showLogoutConfirm && (
-        <View style={styles.dialogOverlay}>
+        <View style={[styles.dialogOverlay, { backgroundColor: dialogOverlayColor }]}>
           <ThemedView style={[styles.dialogContainer, { backgroundColor: surfaceColor }]}>
             <TouchableOpacity
-              style={[styles.dialogClose, { backgroundColor: mutedOverlay }]}
+              style={[styles.dialogClose, { backgroundColor: dialogCloseBg }]}
               onPress={() => setShowLogoutConfirm(false)}
               activeOpacity={0.7}
               accessibilityLabel="Close"
@@ -138,7 +151,7 @@ export default function SettingsScreen() {
             </TouchableOpacity>
             <ThemedText style={styles.dialogTitle}>Are you sure you want to logout?</ThemedText>
             <TouchableOpacity
-              style={[styles.dialogCancelButton, { backgroundColor: tintColor }]}
+              style={[styles.dialogCancelButton, { backgroundColor: brandColor }]}
               onPress={() => setShowLogoutConfirm(false)}
               activeOpacity={0.85}>
               <ThemedText style={styles.dialogCancelText}>Cancel</ThemedText>
@@ -150,7 +163,7 @@ export default function SettingsScreen() {
                 router.push('/login');
               }}
               activeOpacity={0.85}>
-              <ThemedText style={styles.dialogLogoutText}>Log Out</ThemedText>
+              <ThemedText style={[styles.dialogLogoutText, { color: '#d93025' }]}>Log Out</ThemedText>
             </TouchableOpacity>
           </ThemedView>
         </View>
@@ -226,7 +239,6 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: 'rgba(0,0,0,0.4)',
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 500,
@@ -253,7 +265,6 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(0,0,0,0.05)',
   },
   dialogTitle: {
     fontSize: 17,
@@ -264,7 +275,6 @@ const styles = StyleSheet.create({
   dialogCancelButton: {
     width: '100%',
     borderRadius: 28,
-    backgroundColor: '#f0a000',
     paddingVertical: 14,
     alignItems: 'center',
   },

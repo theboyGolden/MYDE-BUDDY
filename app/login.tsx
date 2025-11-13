@@ -145,9 +145,9 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   logo: {
-    height: 100,
-    width: 103,
-    marginBottom: 20,
+    height: 180,
+    width: 185,
+    marginBottom: 5,
   },
   welcome: {
     fontSize: 28,
@@ -164,7 +164,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   inputContainer: {
-    marginBottom: 20,
+    marginBottom: 10,
   },
   label: {
     fontSize: 16,

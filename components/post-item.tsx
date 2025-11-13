@@ -175,7 +175,7 @@ export function PostItem({
                 {userName}
               </ThemedText>
               {isVerified && (
-                <MaterialIcons name="verified" size={16} color={linkColor} style={styles.verifiedIcon} />
+                <MaterialIcons name="verified" size={12} color={linkColor} style={styles.verifiedIcon} />
               )}
               {timestamp && (
                 <>
@@ -250,8 +250,8 @@ export function PostItem({
       {/* Engagement Stats */}
       <View style={styles.engagementBar}>
         <View style={styles.reactionIcons}>
-          <MaterialIcons name="lightbulb-outline" size={16} color="#FFA500" />
-          <MaterialIcons name="thumb-up" size={16} color={linkColor} style={styles.secondReaction} />
+          <MaterialIcons name="lightbulb-outline" size={12} color="#FFA500" />
+          <MaterialIcons name="thumb-up" size={12} color={linkColor} style={styles.secondReaction} />
         </View>
         <ThemedText style={[styles.engagementText, { color: textSecondary }]}>
           {likes}
@@ -276,7 +276,7 @@ export function PostItem({
           <Animated.View style={{ transform: [{ scale: likeScale }] }}>
             <FontAwesome5
               name="thumbs-up"
-              size={20}
+              size={16}
               color={isLiked ? linkColor : iconColor}
               solid={isLiked}
             />
@@ -296,7 +296,7 @@ export function PostItem({
           activeOpacity={0.7}
           onPress={handleComment}>
           <Animated.View style={{ transform: [{ scale: commentScale }] }}>
-            <FontAwesome5 name="comment" size={20} color={iconColor} />
+            <FontAwesome5 name="comment" size={16} color={iconColor} />
           </Animated.View>
           <ThemedText style={[styles.actionText, { color: textSecondary }]} numberOfLines={1}>
             Comment
@@ -310,7 +310,7 @@ export function PostItem({
           <Animated.View style={{ transform: [{ scale: repostScale }] }}>
             <MaterialIcons
               name="repeat"
-              size={20}
+              size={16}
               color={isReposted ? linkColor : iconColor}
             />
           </Animated.View>
@@ -329,7 +329,7 @@ export function PostItem({
           activeOpacity={0.7}
           onPress={handleSend}>
           <Animated.View style={{ transform: [{ scale: sendScale }] }}>
-            <FontAwesome5 name="paper-plane" size={20} color={iconColor} />
+            <FontAwesome5 name="paper-plane" size={16} color={iconColor} />
           </Animated.View>
           <ThemedText style={[styles.actionText, { color: textSecondary }]} numberOfLines={1}>
             Send

@@ -1,6 +1,8 @@
-import { FontAwesome5 } from '@expo/vector-icons';
+import { FontAwesome5, MaterialIcons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
+  Image,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -12,7 +14,6 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { CreatePost } from '@/components/create-post';
-import { Header } from '@/components/header';
 import { PostsList } from '@/components/posts-list';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -106,10 +107,17 @@ const samplePosts = [
 
 export default function HomeScreen() {
   const [modalVisible, setModalVisible] = useState(false);
+  const [posts, setPosts] = useState(samplePosts);
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const backgroundColor = useThemeColor({}, 'background');
   const iconColor = useThemeColor({}, 'icon');
   const tintColor = useThemeColor({}, 'tint');
+  const textColor = useThemeColor({}, 'text');
+  const textSecondary = useThemeColor(
+    { light: '#666666', dark: '#999999' },
+    'text'
+  );
   // Use brand color for FAB button (consistent across themes)
   const fabColor = useThemeColor(
     { light: '#e0971d', dark: '#e0971d' },
@@ -120,12 +128,74 @@ export default function HomeScreen() {
     'background'
   );
 
+  const handleCreatePost = (postData: {
+    content: string;
+    visibility?: string;
+    imageUri?: string;
+    videoUri?: string;
+  }) => {
+    const newPost = {
+      id: `post-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
+      userName: 'Dee', // Current user name
+      timestamp: 'Just now',
+      title: 'User',
+      content: postData.content,
+      imageUri: postData.imageUri,
+      likes: 0,
+      comments: 0,
+      shares: 0,
+      avatarUri: 'https://ui-avatars.com/api/?name=Dee&size=48&background=e0971d&color=fff',
+    } as typeof samplePosts[0];
+    
+    // Add new post to the beginning of the posts array
+    setPosts([newPost, ...posts]);
+  };
+
   return (
     <View style={styles.container}>
-      <Header title="Welcome, Dee 👋" />
+      {/* Custom Welcome Header */}
+      <ThemedView
+        style={[
+          styles.welcomeHeader,
+          {
+            paddingTop: Math.max(insets.top - 12, 4),
+            backgroundColor,
+            borderBottomColor: borderColor,
+          },
+        ]}>
+        <View style={styles.welcomeHeaderContent}>
+          {/* Left side - Avatar and Text */}
+          <View style={styles.welcomeHeaderLeft}>
+            <View style={styles.avatarContainer}>
+              <Image
+                source={require('@/assets/images/profile.png')}
+                style={styles.avatar}
+              />
+            </View>
+            <View style={styles.welcomeTextContainer}>
+              <ThemedText style={[styles.welcomeGreeting, { color: textColor }]}>
+                Hi, Dee
+              </ThemedText>
+              <ThemedText style={[styles.welcomeSubtitle, { color: textSecondary }]}>
+                User
+              </ThemedText>
+            </View>
+          </View>
+
+          {/* Right side - Settings button */}
+          <TouchableOpacity
+            onPress={() => router.push('/settings')}
+            style={styles.settingsButton}
+            activeOpacity={0.7}
+            accessibilityLabel="Settings"
+            accessibilityRole="button">
+            <MaterialIcons name="settings" size={24} color={iconColor} />
+          </TouchableOpacity>
+        </View>
+      </ThemedView>
       <WelcomeCard userName="Dee" />
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        <PostsList posts={samplePosts} />
+        <PostsList posts={posts} />
       </ScrollView>
 
       {/* Floating Create Post Button */}
@@ -182,7 +252,10 @@ export default function HomeScreen() {
               contentContainerStyle={styles.modalBodyContent}
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled">
-              <CreatePost onClose={() => setModalVisible(false)} />
+              <CreatePost
+                onClose={() => setModalVisible(false)}
+                onPost={handleCreatePost}
+              />
             </ScrollView>
           </ThemedView>
         </KeyboardAvoidingView>
@@ -194,6 +267,61 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  welcomeHeader: {
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+    position: 'relative',
+    zIndex: 100,
+  },
+  welcomeHeaderContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    minHeight: 56,
+  },
+  welcomeHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    gap: 12,
+  },
+  avatarContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 28,
+    overflow: 'hidden',
+    backgroundColor: '#000000',
+  },
+  avatar: {
+    width: '100%',
+    height: '100%',
+  },
+  welcomeTextContainer: {
+    flex: 1,
+    gap: 2,
+  },
+  welcomeGreeting: {
+    fontSize: 20,
+    fontWeight: '700',
+  },
+  welcomeSubtitle: {
+    fontSize: 14,
+    fontWeight: '400',
+  },
+  settingsButton: {
+    padding: 8,
+    borderRadius: 20,
+    minWidth: 40,
+    minHeight: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   scrollView: {
     flex: 1,
