@@ -2,13 +2,13 @@ import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-    Image,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
 export default function LoginScreen() {
@@ -35,8 +35,8 @@ export default function LoginScreen() {
     <ScrollView contentContainerStyle={styles.scrollArea} showsVerticalScrollIndicator={false}>
       <View style={styles.container}>
         <View style={styles.header}>
-          <Image source={require('@/assets/images/logo.png')} style={styles.logo} />
-          <Text style={styles.welcome}>Welcome to MOYDE</Text>
+          <Image source={require('@/assets/images/icon.png')} style={styles.logo} />
+          <Text style={styles.welcome}>MYDE Buddy</Text>
           <Text style={styles.sub}>Sign in to continue</Text>
         </View>
 

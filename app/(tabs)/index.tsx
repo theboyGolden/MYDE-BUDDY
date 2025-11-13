@@ -123,8 +123,8 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       <Header title="Welcome, Dee 👋" />
+      <WelcomeCard userName="Dee" />
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        <WelcomeCard userName="Dee" />
         <PostsList posts={samplePosts} />
       </ScrollView>
 

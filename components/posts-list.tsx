@@ -30,6 +30,7 @@ export function PostsList({ posts }: PostsListProps) {
       {posts.map((post) => (
         <PostItem
           key={post.id}
+          id={post.id}
           userName={post.userName}
           timestamp={post.timestamp}
           title={post.title}

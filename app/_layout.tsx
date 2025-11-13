@@ -4,6 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { FollowingProvider } from '@/contexts/following-context';
 import { ThemeProvider, useTheme } from '@/contexts/theme-context';
 
 export const unstable_settings = {
@@ -39,7 +40,9 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <ThemeProvider>
-        <RootLayoutNav />
+        <FollowingProvider>
+          <RootLayoutNav />
+        </FollowingProvider>
       </ThemeProvider>
     </SafeAreaProvider>
   );

@@ -2,17 +2,18 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import {
-    FlatList,
-    Image,
-    ScrollView,
-    StyleSheet,
-    TextInput,
-    TouchableOpacity,
-    View,
+  FlatList,
+  Image,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
 import { Header } from '@/components/header';
 import { ThemedText } from '@/components/themed-text';
+import { useFollowing } from '@/contexts/following-context';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useThemeColor } from '@/hooks/use-theme-color';
 
@@ -23,8 +24,8 @@ export default function NetworkingScreen() {
   const tabs = useMemo(
     () => [
       { key: 'people' as const, label: 'People' },
-      { key: 'connected' as const, label: 'Connected' },
-      { key: 'requests' as const, label: 'Requests' },
+      { key: 'connected' as const, label: 'Followers' },
+      { key: 'requests' as const, label: 'Following' },
       { key: 'chat' as const, label: 'Chat' },
     ],
     [],
@@ -397,6 +398,100 @@ function createStyles(palette: NetworkingPalette) {
       fontWeight: '700',
       color: palette.seeMoreText,
     },
+    followingWrapper: {
+      gap: 16,
+    },
+    followingList: {
+      gap: 16,
+    },
+    followingCard: {
+      backgroundColor: palette.surface,
+      borderRadius: 20,
+      padding: 16,
+      shadowColor: palette.cardShadow,
+      shadowOpacity: palette.theme === 'light' ? 0.08 : 0.3,
+      shadowRadius: 10,
+      shadowOffset: { width: 0, height: 8 },
+      elevation: 3,
+      gap: 12,
+    },
+    followingHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+    },
+    followingAvatar: {
+      width: 56,
+      height: 56,
+      borderRadius: 28,
+    },
+    followingAvatarPlaceholder: {
+      backgroundColor: palette.accentSurface,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    followingAvatarText: {
+      fontSize: 24,
+      fontWeight: '700',
+      color: palette.tint,
+    },
+    followingInfo: {
+      flex: 1,
+      gap: 4,
+    },
+    followingName: {
+      fontSize: 16,
+      fontWeight: '700',
+      color: palette.text,
+    },
+    followingRole: {
+      fontSize: 14,
+    },
+    followingTime: {
+      fontSize: 12,
+      marginTop: 2,
+    },
+    followingPostPreview: {
+      marginTop: 8,
+      paddingTop: 12,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: palette.divider,
+      gap: 8,
+    },
+    followingPostText: {
+      fontSize: 14,
+      lineHeight: 20,
+    },
+    followingPostImage: {
+      width: '100%',
+      height: 150,
+      borderRadius: 12,
+      marginTop: 8,
+    },
+    unfollowButton: {
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+      borderRadius: 12,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: 1,
+      backgroundColor: 'transparent',
+      marginTop: 8,
+    },
+    unfollowButtonText: {
+      fontSize: 15,
+      fontWeight: '700',
+    },
+    emptyState: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 40,
+      gap: 12,
+    },
+    emptyStateText: {
+      fontSize: 16,
+      textAlign: 'center',
+    },
   });
 }
 
@@ -408,7 +503,7 @@ type SectionProps = {
 const ConnectedSection = ({ styles }: SectionProps) => (
   <View style={styles.sectionCard}>
     <ThemedText type="title" style={styles.sectionTitle}>
-      People You Follow
+      People Who Follow You
     </ThemedText>
     <ThemedText style={styles.sectionBody}>
       Discover highlights and updates from founders, mentors, and communities you are connected to.
@@ -418,21 +513,72 @@ const ConnectedSection = ({ styles }: SectionProps) => (
   </View>
 );
 
-const RequestsSection = ({ styles }: SectionProps) => (
-  <View style={styles.sectionCard}>
-    <ThemedText type="title" style={styles.sectionTitle}>
-      Connection Requests
-    </ThemedText>
-    <ThemedText style={styles.sectionBody}>
-      View pending invitations from founders, investors, and collaborators who want to connect with
-      you. Accept to expand your circle or leave feedback to keep the conversation going.
-    </ThemedText>
-    <ThemedText style={styles.sectionBody}>
-      Hosting an event or launching a new project? Send invites to your close contacts and keep an eye
-      on confirmations in this space.
-    </ThemedText>
-  </View>
-);
+const RequestsSection = ({ styles, palette }: SectionProps) => {
+  const { following, removeFollowing } = useFollowing();
+
+  if (following.length === 0) {
+    return (
+      <View style={styles.sectionCard}>
+        <ThemedText type="title" style={styles.sectionTitle}>
+          Following
+        </ThemedText>
+        <ThemedText style={styles.sectionBody}>
+          People you follow will appear here. Follow interesting users to see their updates and connect with them.
+        </ThemedText>
+        <View style={styles.emptyState}>
+          <MaterialIcons name="people-outline" size={48} color={palette.mutedText} />
+          <ThemedText style={[styles.emptyStateText, { color: palette.mutedText }]}>
+            You're not following anyone yet
+          </ThemedText>
+        </View>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.followingWrapper}>
+      <ThemedText type="title" style={styles.sectionTitle}>
+        Following ({following.length})
+      </ThemedText>
+      <View style={styles.followingList}>
+        {following.map((user) => (
+          <View key={user.id} style={styles.followingCard}>
+            <View style={styles.followingHeader}>
+              {user.avatarUri ? (
+                <Image source={{ uri: user.avatarUri }} style={styles.followingAvatar} />
+              ) : (
+                <View style={[styles.followingAvatar, styles.followingAvatarPlaceholder]}>
+                  <ThemedText style={styles.followingAvatarText}>
+                    {user.userName.charAt(0).toUpperCase()}
+                  </ThemedText>
+                </View>
+              )}
+              <View style={styles.followingInfo}>
+                <ThemedText style={styles.followingName}>{user.userName}</ThemedText>
+                {user.company && (
+                  <ThemedText style={[styles.followingRole, { color: palette.mutedText }]}>
+                    {user.company}
+                  </ThemedText>
+                )}
+                <ThemedText style={[styles.followingTime, { color: palette.mutedText }]}>
+                  Followed {user.timestamp || 'recently'}
+                </ThemedText>
+              </View>
+            </View>
+            <TouchableOpacity
+              style={[styles.unfollowButton, { borderColor: palette.divider }]}
+              onPress={() => removeFollowing(user.id)}
+              activeOpacity={0.8}>
+              <ThemedText style={[styles.unfollowButtonText, { color: palette.mutedText }]}>
+                Unfollow
+              </ThemedText>
+            </TouchableOpacity>
+          </View>
+        ))}
+      </View>
+    </View>
+  );
+};
 
 const ChatSection = ({ styles, palette }: SectionProps) => {
   const router = useRouter();

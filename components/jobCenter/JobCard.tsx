@@ -2,7 +2,7 @@ import { ThemedText } from "@/components/themed-text";
 import type { Job } from "@/data/jobs";
 import { useThemeColor } from "@/hooks/use-theme-color";
 import { Ionicons } from "@expo/vector-icons";
-import React from "react";
+import React, { useState } from "react";
 import { Image, StyleSheet, TouchableOpacity, View } from "react-native";
 
 type Props = {
@@ -12,6 +12,7 @@ type Props = {
 };
 
 export default function JobCard({ job, isBookmarked, onToggleBookmark }: Props) {
+  const [imageError, setImageError] = useState(false);
   const text = useThemeColor({}, "text");
   // Use brand color consistently (not tint which is white in dark mode)
   const brand = useThemeColor({ light: "#e0971d", dark: "#e0971d" }, "tint");
@@ -22,6 +23,14 @@ export default function JobCard({ job, isBookmarked, onToggleBookmark }: Props) 
   const tagAltBackground = useThemeColor({ light: "#fff8ee", dark: "#2a1f12" }, "background");
   const logoBg = useThemeColor({ light: "#dde4f9", dark: "#2a2a3a" }, "background");
   const shadowColor = useThemeColor({ light: "#000", dark: "#000" }, "background");
+
+  const hasValidLogo = job.logoUrl && job.logoUrl.trim() !== "" && !imageError;
+  const companyInitials = job.company
+    .split(" ")
+    .map((word) => word[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
 
   return (
     <View
@@ -36,7 +45,20 @@ export default function JobCard({ job, isBookmarked, onToggleBookmark }: Props) 
       <View style={styles.row}>
         <View style={styles.companyInfo}>
           <View style={[styles.logoContainer, { backgroundColor: logoBg }]}>
-            <Image source={{ uri: job.logoUrl }} style={styles.logo} />
+            {hasValidLogo ? (
+              <Image
+                source={{ uri: job.logoUrl }}
+                style={styles.logo}
+                onError={() => setImageError(true)}
+                defaultSource={require("@/assets/images/icon.png")}
+              />
+            ) : (
+              <View style={styles.placeholderContainer}>
+                <ThemedText style={[styles.placeholderText, { color: brand }]}>
+                  {companyInitials}
+                </ThemedText>
+              </View>
+            )}
           </View>
           <View style={styles.jobDetails}>
             <ThemedText style={[styles.company, { color: muted }]}>{job.company}</ThemedText>
@@ -94,6 +116,16 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   logo: { height: 30, width: 30, resizeMode: "contain" },
+  placeholderContainer: {
+    height: 30,
+    width: 30,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  placeholderText: {
+    fontSize: 12,
+    fontWeight: "700",
+  },
   jobDetails: { flexDirection: "column", flex: 1, gap: 4 },
   company: { fontWeight: "600", fontSize: 14 },
   title: { fontWeight: "700", fontSize: 18 },

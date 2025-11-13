@@ -1,11 +1,11 @@
 import { FontAwesome5 } from '@expo/vector-icons';
 import React, { useState } from 'react';
-import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Linking, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 
+import { AIChatAssistant } from '@/components/ai-chat-assistant';
 import { EntrepreneurshipCard } from '@/components/entrepreneurship-card';
 import { Header } from '@/components/header';
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
 import { useThemeColor } from '@/hooks/use-theme-color';
 
 interface EntrepreneurshipOpportunity {
@@ -15,67 +15,115 @@ interface EntrepreneurshipOpportunity {
   category?: string;
   views?: number;
   iconColor: string;
+  youtubeUrl: string;
 }
 
 const sampleOpportunities: EntrepreneurshipOpportunity[] = [
   {
     id: '1',
-    title: 'AutoCAD 2018 - Create 3D Projects and Design Tutorial [COMPLETE]*',
+    title: 'How to Start a Business: Step-by-Step Guide for Entrepreneurs',
     description:
-      '[VOICE + TEXT] Get into a new Way of Learning 3D Projects with AutoCAD 2018. AutoCAD 2018 tutorial for beginners, basics. Full Guide here: http://bit.ly/autocad2018 Enable SUBTITLES if you have trouble at understanding the narration. Leave a comment if you have any questions.',
-    category: 'Training',
-    views: 0,
+      'Learn the fundamentals of starting your own business from scratch. This comprehensive guide covers business planning, legal requirements, funding options, and marketing strategies. Perfect for first-time entrepreneurs.',
+    category: 'Business Planning',
+    views: 1250000,
     iconColor: '#ef4444', // Red
+    youtubeUrl: 'https://www.youtube.com/watch?v=U6B6m3rBx9E',
   },
   {
     id: '2',
-    title: 'US CMA course Complete details | Salary, Scope, Eligibility, Fees, duration, | Neha Patel',
+    title: 'How to Write a Business Plan - Entrepreneurship 101',
     description:
-      'Pls fill out the below google form link for FREE COUNSELLING session on US CMA: https://forms.gle/FdnrUtbFfL5WY8W08',
-    category: 'Training',
-    views: 0,
+      'Master the art of writing a compelling business plan that attracts investors and guides your startup journey. Learn about executive summaries, market analysis, financial projections, and more.',
+    category: 'Business Planning',
+    views: 890000,
     iconColor: '#8b5cf6', // Purple
+    youtubeUrl: 'https://www.youtube.com/watch?v=Y8OPJXQ8pQk',
   },
   {
     id: '3',
-    title: 'Dog training - Aggression In Depth - John Rogerson',
+    title: 'Digital Marketing for Small Business: Complete Guide',
     description:
-      'Preview Clip DVD Title: Aggression in Depth Presenter: John Rogerson Full DVD available at: http://www.tawzerdog.com In this 3-day seminar you will find: relationships that owners have with their dogs, defining what is meant by aggression as distinct from other behaviors.',
-    category: 'Training',
-    views: 0,
+      'Discover proven digital marketing strategies to grow your business online. Learn about SEO, social media marketing, email campaigns, content marketing, and paid advertising on a budget.',
+    category: 'Marketing',
+    views: 2100000,
     iconColor: '#ec4899', // Magenta
+    youtubeUrl: 'https://www.youtube.com/watch?v=ZfCm5V1pB9I',
   },
   {
     id: '4',
-    title: 'Install Latest Python and PyCharm on Windows 11 | Python Full Course for Beginners - Lecture #2',
+    title: 'How to Get Funding for Your Startup: Investor Pitch Tips',
     description:
-      'Learn how to install Python and PyCharm on Windows 11. This is the second lecture in our comprehensive Python course for beginners. We will cover everything you need to get started with Python programming.',
-    category: 'Training',
-    views: 0,
+      'Learn how to pitch your startup to investors and secure funding. This video covers pitch deck creation, valuation basics, different funding sources, and what investors look for in startups.',
+    category: 'Funding',
+    views: 1650000,
     iconColor: '#10b981', // Green
+    youtubeUrl: 'https://www.youtube.com/watch?v=4o37h4hqJ8Y',
   },
   {
     id: '5',
-    title: 'Business Strategy and Planning Workshop',
+    title: 'E-commerce Business: How to Start Selling Online',
     description:
-      'Join our comprehensive workshop on business strategy and planning. Learn how to develop effective business plans, analyze market opportunities, and create sustainable business models. Perfect for aspiring entrepreneurs.',
-    category: 'Workshop',
-    views: 0,
+      'Step-by-step guide to launching your e-commerce business. Learn about choosing products, setting up online stores, payment processing, shipping, and customer service best practices.',
+    category: 'E-commerce',
+    views: 980000,
     iconColor: '#f59e0b', // Amber
+    youtubeUrl: 'https://www.youtube.com/watch?v=GXl7Fq_a4pg',
   },
   {
     id: '6',
-    title: 'Digital Marketing Masterclass for Entrepreneurs',
+    title: 'Social Media Marketing for Entrepreneurs',
     description:
-      'Master the art of digital marketing for your business. Learn SEO, social media marketing, content creation, and email marketing strategies that will help you grow your business online.',
-    category: 'Training',
-    views: 0,
+      'Master social media marketing to build your brand and grow your audience. Learn platform-specific strategies for Instagram, Facebook, LinkedIn, Twitter, and TikTok to engage customers and drive sales.',
+    category: 'Marketing',
+    views: 3200000,
     iconColor: '#06b6d4', // Cyan
+    youtubeUrl: 'https://www.youtube.com/watch?v=9mPwQTi1jUE',
+  },
+  {
+    id: '7',
+    title: 'Financial Management for Small Business Owners',
+    description:
+      'Essential financial management skills every entrepreneur needs. Learn about cash flow management, budgeting, bookkeeping basics, tax planning, and financial forecasting for business success.',
+    category: 'Finance',
+    views: 750000,
+    iconColor: '#f97316', // Orange
+    youtubeUrl: 'https://www.youtube.com/watch?v=5VWhpGGX7Po',
+  },
+  {
+    id: '8',
+    title: 'Building a Brand: Branding Strategy for Startups',
+    description:
+      'Learn how to create a strong brand identity that resonates with your target audience. Discover branding fundamentals, logo design, brand voice, storytelling, and building brand loyalty.',
+    category: 'Branding',
+    views: 1420000,
+    iconColor: '#6366f1', // Indigo
+    youtubeUrl: 'https://www.youtube.com/watch?v=jkvc8qjXhQk',
+  },
+  {
+    id: '9',
+    title: 'Customer Acquisition: How to Get Your First 100 Customers',
+    description:
+      'Proven strategies to acquire your first customers and build a sustainable customer base. Learn about customer discovery, acquisition channels, referral programs, and retention tactics.',
+    category: 'Sales',
+    views: 680000,
+    iconColor: '#14b8a6', // Teal
+    youtubeUrl: 'https://www.youtube.com/watch?v=Yy6kYV8wqXc',
+  },
+  {
+    id: '10',
+    title: 'Time Management for Entrepreneurs: Productivity Tips',
+    description:
+      'Master time management to maximize productivity and achieve work-life balance as an entrepreneur. Learn prioritization techniques, delegation strategies, and tools to manage your time effectively.',
+    category: 'Productivity',
+    views: 1850000,
+    iconColor: '#a855f7', // Purple
+    youtubeUrl: 'https://www.youtube.com/watch?v=iONDebHX9qk',
   },
 ];
 
 export default function EntrepreneurshipCentreScreen() {
   const [activeTab, setActiveTab] = useState<'opportunities' | 'chat'>('opportunities');
+  const [showChatHistory, setShowChatHistory] = useState(false);
   const backgroundColor = useThemeColor({}, 'background');
   const tintColor = '#eab308'; // Yellow color for active tab
   const textColor = useThemeColor({}, 'text');
@@ -88,9 +136,18 @@ export default function EntrepreneurshipCentreScreen() {
     'background'
   );
 
-  const handleView = (opportunityId: string) => {
-    console.log('View opportunity:', opportunityId);
-    // Handle view logic
+  const handleView = async (opportunityId: string) => {
+    const opportunity = sampleOpportunities.find((o) => o.id === opportunityId);
+    if (opportunity?.youtubeUrl) {
+      try {
+        const canOpen = await Linking.canOpenURL(opportunity.youtubeUrl);
+        if (canOpen) {
+          await Linking.openURL(opportunity.youtubeUrl);
+        }
+      } catch (error) {
+        console.error('Error opening YouTube URL:', error);
+      }
+    }
   };
 
   const handleRefresh = () => {
@@ -173,12 +230,10 @@ export default function EntrepreneurshipCentreScreen() {
         )}
 
         {activeTab === 'chat' && (
-          <ThemedView style={styles.chatPlaceholder}>
-            <FontAwesome5 name="comments" size={48} color={textSecondary} />
-            <ThemedText style={[styles.placeholderText, { color: textSecondary }]}>
-              AI Chat Assistant coming soon
-            </ThemedText>
-          </ThemedView>
+          <AIChatAssistant
+            context="entrepreneurship"
+            onChatHistoryToggle={() => setShowChatHistory(!showChatHistory)}
+          />
         )}
       </ScrollView>
     </View>

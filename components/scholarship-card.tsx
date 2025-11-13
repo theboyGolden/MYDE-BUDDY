@@ -14,6 +14,7 @@ interface ScholarshipCardProps {
   location?: string;
   views?: number;
   onApply?: () => void;
+  applyUrl?: string;
 }
 
 export function ScholarshipCard({

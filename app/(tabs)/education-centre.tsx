@@ -1,11 +1,11 @@
 import { FontAwesome5 } from '@expo/vector-icons';
 import React, { useState } from 'react';
-import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Linking, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 
+import { AIChatAssistant } from '@/components/ai-chat-assistant';
 import { Header } from '@/components/header';
 import { ScholarshipCard } from '@/components/scholarship-card';
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
 import { useThemeColor } from '@/hooks/use-theme-color';
 
 interface Scholarship {
@@ -16,63 +16,125 @@ interface Scholarship {
   imageUri: string;
   location?: string;
   views?: number;
+  applyUrl: string;
 }
 
 const sampleScholarships: Scholarship[] = [
   {
     id: '1',
-    title: 'The Boren Awards',
+    title: '$10,000 No-Essay Scholarship',
     description:
-      'Are you an undergraduate or graduate student interested in studying abroad? If so, consider applying for the Boren Awards! The Boren Awards are open to postsecondary U.S. students interested in studying abroad in world regions critical to U.S. interests.',
-    deadline: '21/01/26',
+      'Get matched with vetted scholarships and enter our $10,000 No-Essay Scholarship. 100% Free. No Spam. Automatic entry for all Scholarships360 members. Open to high school and college students.',
+    deadline: 'Ongoing',
     imageUri: 'https://picsum.photos/200/200?random=1',
     location: 'N/A',
-    views: 0,
+    views: 1250,
+    applyUrl: 'https://scholarships360.org/scholarships',
   },
   {
     id: '2',
-    title: '"Mom to Scholar" Scholarship for Mothers',
+    title: 'Easy Scholarships',
     description:
-      'The "Mom to Scholar" Scholarship for Mothers is open to mothers who want to begin or resume their journey towards earning a technical or college degree. This scholarship is funded by Scholarships360\'s own Maria Geiger, who started her journey as a mother pursuing higher education.',
-    deadline: '31/01/26',
+      '$461,500+ total value available. 36 scholarships still accepting applications. These scholarships have simple application processes and are perfect for students looking for quick opportunities.',
+    deadline: 'Varies',
     imageUri: 'https://picsum.photos/200/200?random=2',
     location: 'N/A',
-    views: 0,
+    views: 890,
+    applyUrl: 'https://scholarships360.org/scholarships',
   },
   {
     id: '3',
-    title: 'Sharing is Caring Scholarship',
+    title: 'Scholarships for HS Seniors',
     description:
-      'Did you know you can win a $1,000 scholarship just by sharing Scholarships360 with your friends? The Sharing is Caring Scholarship is open to all Scholarships360 users who refer their friends to Scholarships360. The more people you refer, the higher your chances!',
-    deadline: '31/12/25',
+      '$38,104,330+ total value available. 3,453 scholarships still accepting applications. Perfect for graduating high school seniors preparing for college.',
+    deadline: 'Varies',
     imageUri: 'https://picsum.photos/200/200?random=3',
     location: 'N/A',
-    views: 0,
+    views: 2100,
+    applyUrl: 'https://scholarships360.org/scholarships',
   },
   {
     id: '4',
-    title: 'Designli Empowering Women in Tech Scholarship',
+    title: 'Scholarships for College Students',
     description:
-      'Are you a female high school senior, undergraduate, or graduate student with a passion for technology and entrepreneurship? If so, the Designli Empowering Women in Tech Essay Scholarship is for you! This incredible $3,000 scholarship is open to women pursuing careers in tech.',
-    deadline: '30/11/25',
+      '$5,314,738+ total value available. 2,733 scholarships still accepting applications. Opportunities specifically for current college and university students.',
+    deadline: 'Varies',
     imageUri: 'https://picsum.photos/200/200?random=4',
     location: 'N/A',
-    views: 0,
+    views: 1650,
+    applyUrl: 'https://scholarships360.org/scholarships',
   },
   {
     id: '5',
-    title: 'STEM Excellence Scholarship',
+    title: 'STEM Scholarships',
     description:
-      'The STEM Excellence Scholarship supports outstanding students pursuing degrees in Science, Technology, Engineering, or Mathematics. This $5,000 award recognizes academic achievement and commitment to innovation in STEM fields.',
-    deadline: '15/02/26',
+      '$487,000+ total value available. 464 scholarships still accepting applications. For students pursuing degrees in Science, Technology, Engineering, or Mathematics.',
+    deadline: 'Varies',
     imageUri: 'https://picsum.photos/200/200?random=5',
     location: 'N/A',
-    views: 0,
+    views: 980,
+    applyUrl: 'https://scholarships360.org/scholarships',
+  },
+  {
+    id: '6',
+    title: 'Scholarships for Black Students',
+    description:
+      '$1,186,000+ total value available. 195 scholarships still accepting applications. Dedicated opportunities for Black and African American students.',
+    deadline: 'Varies',
+    imageUri: 'https://picsum.photos/200/200?random=6',
+    location: 'N/A',
+    views: 750,
+    applyUrl: 'https://scholarships360.org/scholarships',
+  },
+  {
+    id: '7',
+    title: 'No Essay Scholarships',
+    description:
+      '$11,306,500+ total value available. 64 scholarships still accepting applications. Quick and easy scholarships that don\'t require essays - perfect for busy students.',
+    deadline: 'Varies',
+    imageUri: 'https://picsum.photos/200/200?random=7',
+    location: 'N/A',
+    views: 3200,
+    applyUrl: 'https://scholarships360.org/scholarships',
+  },
+  {
+    id: '8',
+    title: 'Scholarships for Women',
+    description:
+      '275 scholarships still accepting applications. Opportunities specifically designed to support women in their educational journey across all fields of study.',
+    deadline: 'Varies',
+    imageUri: 'https://picsum.photos/200/200?random=8',
+    location: 'N/A',
+    views: 1420,
+    applyUrl: 'https://scholarships360.org/scholarships',
+  },
+  {
+    id: '9',
+    title: 'Scholarships for HS Juniors',
+    description:
+      '$3,904,850+ total value available. 282 scholarships still accepting applications. Start your scholarship search early with opportunities for high school juniors.',
+    deadline: 'Varies',
+    imageUri: 'https://picsum.photos/200/200?random=9',
+    location: 'N/A',
+    views: 680,
+    applyUrl: 'https://scholarships360.org/scholarships',
+  },
+  {
+    id: '10',
+    title: 'Skechers Foundation Scholarships',
+    description:
+      '$200,000 in exclusive scholarships from the Skechers Foundation! Recently published opportunities for students. Apply now for these exclusive awards.',
+    deadline: 'Varies',
+    imageUri: 'https://picsum.photos/200/200?random=10',
+    location: 'N/A',
+    views: 1850,
+    applyUrl: 'https://scholarships360.org/scholarships',
   },
 ];
 
 export default function EducationCentreScreen() {
   const [activeTab, setActiveTab] = useState<'opportunities' | 'chat'>('opportunities');
+  const [showChatHistory, setShowChatHistory] = useState(false);
   const backgroundColor = useThemeColor({}, 'background');
   const tintColor = '#f97316'; // Orange color for active tab
   const textColor = useThemeColor({}, 'text');
@@ -85,9 +147,18 @@ export default function EducationCentreScreen() {
     'background'
   );
 
-  const handleApply = (scholarshipId: string) => {
-    console.log('Apply for scholarship:', scholarshipId);
-    // Handle apply logic
+  const handleApply = async (scholarshipId: string) => {
+    const scholarship = sampleScholarships.find((s) => s.id === scholarshipId);
+    if (scholarship?.applyUrl) {
+      try {
+        const canOpen = await Linking.canOpenURL(scholarship.applyUrl);
+        if (canOpen) {
+          await Linking.openURL(scholarship.applyUrl);
+        }
+      } catch (error) {
+        console.error('Error opening URL:', error);
+      }
+    }
   };
 
   const handleRefresh = () => {
@@ -177,12 +248,10 @@ export default function EducationCentreScreen() {
         )}
 
         {activeTab === 'chat' && (
-          <ThemedView style={styles.chatPlaceholder}>
-            <FontAwesome5 name="comments" size={48} color={textSecondary} />
-            <ThemedText style={[styles.placeholderText, { color: textSecondary }]}>
-              AI Chat Assistant coming soon
-            </ThemedText>
-          </ThemedView>
+          <AIChatAssistant
+            context="education"
+            onChatHistoryToggle={() => setShowChatHistory(!showChatHistory)}
+          />
         )}
       </ScrollView>
     </View>

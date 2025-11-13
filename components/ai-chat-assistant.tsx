@@ -1,4 +1,4 @@
-import { MaterialIcons } from '@expo/vector-icons';
+import { FontAwesome5, MaterialIcons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import { StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 
@@ -6,49 +6,76 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useThemeColor } from '@/hooks/use-theme-color';
 
-export function AIChatAssistant() {
+interface AIChatAssistantProps {
+  context?: 'education' | 'entrepreneurship';
+  onChatHistoryToggle?: () => void;
+}
+
+export function AIChatAssistant({ context = 'education', onChatHistoryToggle }: AIChatAssistantProps) {
   const [message, setMessage] = useState('');
   const iconColor = useThemeColor({}, 'icon');
-  const backgroundColor = useThemeColor(
-    { light: '#fff', dark: '#151718' },
-    'background'
-  );
+  const backgroundColor = useThemeColor({}, 'background');
   const textColor = useThemeColor({}, 'text');
+  const textSecondary = useThemeColor(
+    { light: '#666666', dark: '#999999' },
+    'text'
+  );
   const inputBackgroundColor = useThemeColor(
-    { light: '#fff', dark: '#1a1a1a' },
+    { light: '#f5f5f5', dark: '#2a2a2a' },
     'background'
   );
   const borderColor = useThemeColor(
-    { light: 'rgba(0, 0, 0, 0.1)', dark: '#fff' },
+    { light: 'rgba(0, 0, 0, 0.1)', dark: 'rgba(255, 255, 255, 0.1)' },
     'background'
   );
+  const linkColor = useThemeColor(
+    { light: '#0077B5', dark: '#4A9EFF' },
+    'tint'
+  );
 
-  const quickStartOptions = [
-    {
-      title: 'Web Dev Interview',
-      borderColor: '#E98B8B', // Reddish-pink
-      textColor: '#E98B8B',
-      iconColor: '#E98B8B',
-      icon: 'menu' as const,
-      filled: false,
-    },
-    {
-      title: 'HR Interview',
-      borderColor: '#F7B550', // Orange
-      textColor: '#F7B550',
-      iconColor: '#F7B550',
-      icon: 'search' as const,
-      filled: false,
-    },
-    {
-      title: 'Sales Interview',
-      borderColor: '#90D490', // Light green
-      textColor: '#90D490',
-      iconColor: '#90D490',
-      icon: null,
-      filled: false,
-    },
-  ];
+  // Context-based configuration
+  const assistantName = context === 'education' ? 'EducationHr' : 'EntrepreneurshipHr';
+  const placeholderText =
+    context === 'education'
+      ? 'Ask me anything about courses, scholarships, study tips, or career guidance.....'
+      : 'Ask me anything about entrepreneurship, business planning, funding, or marketing.....';
+
+  const quickStartOptions =
+    context === 'education'
+      ? [
+          {
+            title: 'Course Selection',
+            icon: 'book' as const,
+            color: '#4A90E2',
+          },
+          {
+            title: 'Scholarship Guide',
+            icon: 'graduation-cap' as const,
+            color: '#50C878',
+          },
+          {
+            title: 'Study Tips',
+            icon: 'lightbulb' as const,
+            color: '#FFA500',
+          },
+        ]
+      : [
+          {
+            title: 'Business Plan',
+            icon: 'file-alt' as const,
+            color: '#4A90E2',
+          },
+          {
+            title: 'Funding Guide',
+            icon: 'video' as const,
+            color: '#50C878',
+          },
+          {
+            title: 'Marketing Strategy',
+            icon: 'bullseye' as const,
+            color: '#FFA500',
+          },
+        ];
 
   // Get greeting based on time of day
   const getGreeting = () => {
@@ -67,10 +94,13 @@ export function AIChatAssistant() {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: backgroundColor }]}>
+    <ThemedView style={[styles.container, { backgroundColor }]}>
       {/* Header Section */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.menuButton} activeOpacity={0.7}>
+        <TouchableOpacity
+          style={styles.menuButton}
+          onPress={onChatHistoryToggle}
+          activeOpacity={0.7}>
           <MaterialIcons name="menu" size={24} color={iconColor} />
         </TouchableOpacity>
       </View>
@@ -80,7 +110,9 @@ export function AIChatAssistant() {
         <ThemedText type="title" style={styles.greeting}>
           {getGreeting()}, Dee 👋
         </ThemedText>
-        <ThemedText style={styles.subGreeting}>What can I help you with today?</ThemedText>
+        <ThemedText style={[styles.subGreeting, { color: textSecondary }]}>
+          What can I help you with today?
+        </ThemedText>
       </View>
 
       {/* Chat Input Area */}
@@ -91,23 +123,18 @@ export function AIChatAssistant() {
             {
               backgroundColor: inputBackgroundColor,
               borderColor: borderColor,
-              shadowColor: '#000',
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.1,
-              shadowRadius: 4,
-              elevation: 3,
             },
           ]}>
           <TextInput
             style={[styles.input, { color: textColor }]}
-            placeholder="Ask me anything about jobs, career advice, or interview preparation....."
-            placeholderTextColor={useThemeColor({}, 'icon')}
+            placeholder={placeholderText}
+            placeholderTextColor={textSecondary}
             value={message}
             onChangeText={setMessage}
             multiline
             textAlignVertical="top"
           />
-          <View style={[styles.inputActions, { borderTopColor: borderColor }]}>
+          <View style={styles.inputActions}>
             <TouchableOpacity style={styles.actionIcon} activeOpacity={0.7}>
               <MaterialIcons name="add-circle-outline" size={24} color={iconColor} />
             </TouchableOpacity>
@@ -118,7 +145,7 @@ export function AIChatAssistant() {
               style={styles.actionIcon}
               onPress={handleSend}
               activeOpacity={0.7}>
-              <MaterialIcons name="send" size={24} color={iconColor} />
+              <FontAwesome5 name="paper-plane" size={20} color={iconColor} />
             </TouchableOpacity>
           </View>
         </ThemedView>
@@ -126,8 +153,8 @@ export function AIChatAssistant() {
 
       {/* Quick Start Options */}
       <View style={styles.quickStartSection}>
-        <ThemedText style={styles.quickStartText}>
-          Start a New Chat with InterviewHr quickly with any of the below
+        <ThemedText style={[styles.quickStartText, { color: textSecondary }]}>
+          Start a New Chat with {assistantName} quickly with any of the below
         </ThemedText>
         <View style={styles.quickStartButtons}>
           {quickStartOptions.map((option, index) => (
@@ -137,21 +164,18 @@ export function AIChatAssistant() {
                 styles.quickStartButton,
                 {
                   backgroundColor: inputBackgroundColor,
-                  borderColor: option.borderColor,
-                  borderWidth: 1,
+                  borderColor: option.color,
                 },
               ]}
               activeOpacity={0.7}>
-              {option.icon && (
-                <MaterialIcons
-                  name={option.icon}
-                  size={14}
-                  color={option.iconColor}
-                  style={styles.buttonIcon}
-                />
-              )}
+              <FontAwesome5
+                name={option.icon}
+                size={14}
+                color={option.color}
+                style={styles.buttonIcon}
+              />
               <ThemedText
-                style={[styles.buttonText, { color: option.textColor }]}
+                style={[styles.buttonText, { color: option.color }]}
                 numberOfLines={1}>
                 {option.title}
               </ThemedText>
@@ -159,13 +183,15 @@ export function AIChatAssistant() {
           ))}
         </View>
       </View>
-    </View>
+    </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    width: '100%',
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingTop: 20,
     paddingBottom: 20,
   },
   header: {
@@ -178,15 +204,17 @@ const styles = StyleSheet.create({
   },
   greetingSection: {
     marginBottom: 32,
+    alignItems: 'center',
   },
   greeting: {
-    fontSize: 28,
-    fontWeight: 'bold',
+    fontSize: 24,
+    fontWeight: '700',
     marginBottom: 8,
+    textAlign: 'center',
   },
   subGreeting: {
     fontSize: 16,
-    opacity: 0.7,
+    textAlign: 'center',
   },
   inputSection: {
     marginBottom: 32,
@@ -195,22 +223,22 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    minHeight: 120,
+    minHeight: 140,
   },
   input: {
     flex: 1,
     fontSize: 16,
     lineHeight: 22,
-    minHeight: 80,
+    minHeight: 100,
+    padding: 0,
   },
   inputActions: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-end',
-    gap: 12,
+    gap: 16,
     marginTop: 12,
     paddingTop: 12,
-    borderTopWidth: StyleSheet.hairlineWidth,
   },
   actionIcon: {
     padding: 4,
@@ -220,7 +248,6 @@ const styles = StyleSheet.create({
   },
   quickStartText: {
     fontSize: 14,
-    opacity: 0.7,
     marginBottom: 16,
     textAlign: 'center',
   },
@@ -234,9 +261,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 10,
-    paddingHorizontal: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
     borderRadius: 50,
+    borderWidth: 1,
     gap: 6,
     minWidth: 0,
   },
@@ -244,8 +272,8 @@ const styles = StyleSheet.create({
     marginRight: 2,
   },
   buttonText: {
-    fontSize: 11,
-    fontWeight: '500',
+    fontSize: 12,
+    fontWeight: '600',
     flexShrink: 1,
   },
 });

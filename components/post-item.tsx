@@ -1,12 +1,14 @@
 import { FontAwesome5, MaterialIcons } from '@expo/vector-icons';
-import React from 'react';
-import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
+import React, { useRef, useState } from 'react';
+import { Animated, Image, StyleSheet, TouchableOpacity, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { useFollowing } from '@/contexts/following-context';
 import { useThemeColor } from '@/hooks/use-theme-color';
 
 interface PostItemProps {
+  id?: string;
   userName: string;
   timestamp?: string;
   title?: string;
@@ -23,20 +25,39 @@ interface PostItemProps {
 }
 
 export function PostItem({
+  id,
   userName,
   timestamp,
   title,
   company,
   content,
   imageUri,
-  likes,
-  comments,
-  shares,
+  likes: initialLikes,
+  comments: initialComments,
+  shares: initialShares,
   avatarUri,
   isVerified = false,
   isPromoted = false,
   promotedBy,
 }: PostItemProps) {
+  const { addFollowing, removeFollowing, isFollowing } = useFollowing();
+  const userId = id || userName; // Use id if provided, otherwise use userName as fallback
+  const following = isFollowing(userId);
+  
+  // State for counts
+  const [likes, setLikes] = useState(initialLikes);
+  const [comments, setComments] = useState(initialComments);
+  const [shares, setShares] = useState(initialShares);
+  const [isLiked, setIsLiked] = useState(false);
+  const [isReposted, setIsReposted] = useState(false);
+  const [isTextExpanded, setIsTextExpanded] = useState(false);
+  
+  // Animation values
+  const likeScale = useRef(new Animated.Value(1)).current;
+  const commentScale = useRef(new Animated.Value(1)).current;
+  const repostScale = useRef(new Animated.Value(1)).current;
+  const sendScale = useRef(new Animated.Value(1)).current;
+  
   const iconColor = useThemeColor({}, 'icon');
   const backgroundColor = useThemeColor({}, 'background');
   const borderColor = useThemeColor(
@@ -51,6 +72,81 @@ export function PostItem({
     { light: '#0077B5', dark: '#4A9EFF' },
     'tint'
   );
+  
+  // Animation function
+  const animateButton = (animValue: Animated.Value, callback?: () => void) => {
+    Animated.sequence([
+      Animated.spring(animValue, {
+        toValue: 1.2,
+        useNativeDriver: true,
+        tension: 300,
+        friction: 4,
+      }),
+      Animated.spring(animValue, {
+        toValue: 1,
+        useNativeDriver: true,
+        tension: 300,
+        friction: 4,
+      }),
+    ]).start();
+    
+    if (callback) {
+      setTimeout(callback, 100);
+    }
+  };
+  
+  const handleLike = () => {
+    animateButton(likeScale, () => {
+      if (isLiked) {
+        setLikes((prev) => Math.max(0, prev - 1));
+        setIsLiked(false);
+      } else {
+        setLikes((prev) => prev + 1);
+        setIsLiked(true);
+      }
+    });
+  };
+  
+  const handleComment = () => {
+    animateButton(commentScale, () => {
+      setComments((prev) => prev + 1);
+    });
+  };
+  
+  const handleRepost = () => {
+    animateButton(repostScale, () => {
+      if (isReposted) {
+        setShares((prev) => Math.max(0, prev - 1));
+        setIsReposted(false);
+      } else {
+        setShares((prev) => prev + 1);
+        setIsReposted(true);
+      }
+    });
+  };
+  
+  const handleSend = () => {
+    animateButton(sendScale);
+  };
+
+  const handleFollowToggle = () => {
+    if (following) {
+      removeFollowing(userId);
+    } else {
+      addFollowing({
+        id: userId,
+        userName,
+        title,
+        company,
+        avatarUri,
+        timestamp: timestamp || 'Just now',
+        postId: id,
+        postContent: content,
+        postImageUri: imageUri,
+        followedAt: new Date(),
+      });
+    }
+  };
 
   return (
     <ThemedView style={[styles.container, { backgroundColor, borderColor }]}>
@@ -103,13 +199,19 @@ export function PostItem({
         </View>
         <View style={styles.headerRight}>
           <TouchableOpacity
-            style={[styles.followButton, { borderColor: linkColor }]}
-            activeOpacity={0.7}
-          >
-            <ThemedText style={[styles.followText, { color: linkColor }]}>+ Follow</ThemedText>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.menuButton} activeOpacity={0.7}>
-            <MaterialIcons name="more-vert" size={20} color={iconColor} />
+            style={[
+              styles.followButton,
+              { borderColor: following ? textSecondary : linkColor },
+            ]}
+            onPress={handleFollowToggle}
+            activeOpacity={0.7}>
+            <ThemedText
+              style={[
+                styles.followText,
+                { color: following ? textSecondary : linkColor },
+              ]}>
+              {following ? 'Following' : '+ Follow'}
+            </ThemedText>
           </TouchableOpacity>
         </View>
       </View>
@@ -117,12 +219,18 @@ export function PostItem({
       {/* Content Section */}
       {content && (
         <View style={styles.contentSection}>
-          <ThemedText style={styles.contentText} numberOfLines={content.length > 100 ? 3 : undefined}>
+          <ThemedText
+            style={styles.contentText}
+            numberOfLines={isTextExpanded ? undefined : 3}>
             {content}
           </ThemedText>
           {content.length > 100 && (
-            <TouchableOpacity activeOpacity={0.7}>
-              <ThemedText style={[styles.moreText, { color: textSecondary }]}>...more</ThemedText>
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => setIsTextExpanded(!isTextExpanded)}>
+              <ThemedText style={[styles.moreText, { color: linkColor }]}>
+                {isTextExpanded ? '...less' : '...more'}
+              </ThemedText>
             </TouchableOpacity>
           )}
         </View>
@@ -161,24 +269,71 @@ export function PostItem({
 
       {/* Action Buttons */}
       <View style={[styles.actionBar, { borderTopColor: borderColor }]}>
-        <TouchableOpacity style={styles.actionButton} activeOpacity={0.7}>
-          <FontAwesome5 name="thumbs-up" size={20} color={iconColor} />
-          <ThemedText style={[styles.actionText, { color: textSecondary }]}>Like</ThemedText>
+        <TouchableOpacity
+          style={styles.actionButton}
+          activeOpacity={0.7}
+          onPress={handleLike}>
+          <Animated.View style={{ transform: [{ scale: likeScale }] }}>
+            <FontAwesome5
+              name="thumbs-up"
+              size={20}
+              color={isLiked ? linkColor : iconColor}
+              solid={isLiked}
+            />
+          </Animated.View>
+          <ThemedText
+            style={[
+              styles.actionText,
+              { color: isLiked ? linkColor : textSecondary },
+            ]}
+            numberOfLines={1}>
+            Like
+          </ThemedText>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.actionButton} activeOpacity={0.7}>
-          <FontAwesome5 name="comment" size={20} color={iconColor} />
-          <ThemedText style={[styles.actionText, { color: textSecondary }]}>Comment</ThemedText>
+        <TouchableOpacity
+          style={styles.actionButton}
+          activeOpacity={0.7}
+          onPress={handleComment}>
+          <Animated.View style={{ transform: [{ scale: commentScale }] }}>
+            <FontAwesome5 name="comment" size={20} color={iconColor} />
+          </Animated.View>
+          <ThemedText style={[styles.actionText, { color: textSecondary }]} numberOfLines={1}>
+            Comment
+          </ThemedText>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.actionButton} activeOpacity={0.7}>
-          <FontAwesome5 name="retweet" size={20} color={iconColor} />
-          <ThemedText style={[styles.actionText, { color: textSecondary }]}>Repost</ThemedText>
+        <TouchableOpacity
+          style={styles.actionButton}
+          activeOpacity={0.7}
+          onPress={handleRepost}>
+          <Animated.View style={{ transform: [{ scale: repostScale }] }}>
+            <MaterialIcons
+              name="repeat"
+              size={20}
+              color={isReposted ? linkColor : iconColor}
+            />
+          </Animated.View>
+          <ThemedText
+            style={[
+              styles.actionText,
+              { color: isReposted ? linkColor : textSecondary },
+            ]}
+            numberOfLines={1}>
+            Repost
+          </ThemedText>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.actionButton} activeOpacity={0.7}>
-          <FontAwesome5 name="paper-plane" size={20} color={iconColor} />
-          <ThemedText style={[styles.actionText, { color: textSecondary }]}>Send</ThemedText>
+        <TouchableOpacity
+          style={styles.actionButton}
+          activeOpacity={0.7}
+          onPress={handleSend}>
+          <Animated.View style={{ transform: [{ scale: sendScale }] }}>
+            <FontAwesome5 name="paper-plane" size={20} color={iconColor} />
+          </Animated.View>
+          <ThemedText style={[styles.actionText, { color: textSecondary }]} numberOfLines={1}>
+            Send
+          </ThemedText>
         </TouchableOpacity>
       </View>
     </ThemedView>
@@ -250,17 +405,14 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   followButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 6,
-    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 14,
     borderWidth: 1,
   },
   followText: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '600',
-  },
-  menuButton: {
-    padding: 4,
   },
   contentSection: {
     marginBottom: 12,
@@ -315,12 +467,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 4,
     paddingVertical: 8,
-    paddingHorizontal: 12,
+    paddingHorizontal: 8,
     flex: 1,
     justifyContent: 'center',
+    minWidth: 0,
   },
   actionText: {
     fontSize: 14,
     fontWeight: '500',
+    textAlign: 'center',
   },
 });
