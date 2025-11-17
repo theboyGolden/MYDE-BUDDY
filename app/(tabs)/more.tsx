@@ -2,13 +2,13 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import {
-  FlatList,
-  Image,
-  ScrollView,
-  StyleSheet,
-  TextInput,
-  TouchableOpacity,
-  View,
+    FlatList,
+    Image,
+    ScrollView,
+    StyleSheet,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 
 import ChatFilterSheet, { ChatFilterOptions } from '@/components/chat-filter-sheet';
@@ -101,8 +101,8 @@ function useNetworkingPalette() {
     mutedText: useThemeColor({ light: '#545454', dark: '#c7c7c7' }, 'text'),
     jobBorder: useThemeColor({ light: '#f2d9a0', dark: '#3a2b15' }, 'background'),
     jobBackground: useThemeColor({ light: '#fff8ea', dark: '#1d170f' }, 'background'),
-    followButtonBg: useThemeColor({ light: '#ffd88a', dark: '#3c2a10' }, 'background'),
-    followButtonText: useThemeColor({ light: '#7a4b00', dark: '#f5d8a4' }, 'text'),
+    followButtonBg: useThemeColor({ light: '#046A38', dark: '#046A38' }, 'background'),
+    followButtonText: useThemeColor({ light: '#ffffff', dark: '#ffffff' }, 'text'),
     seeMoreText: useThemeColor({ light: '#e39800', dark: '#f2d097' }, 'tint'),
     divider: useThemeColor({ light: '#e6e0d2', dark: '#2f2518' }, 'background'),
   };
@@ -784,7 +784,9 @@ const ChatSection = ({ styles, palette }: SectionProps) => {
   );
 };
 
-const PeopleSection = ({ styles }: SectionProps) => {
+const PeopleSection = ({ styles, palette }: SectionProps) => {
+  const { addFollowing, removeFollowing, isFollowing } = useFollowing();
+  
   const friends = [
     { id: 'andy', name: 'Andy', avatar: 'https://randomuser.me/api/portraits/men/12.jpg' },
     { id: 'eldy', name: 'Eldy', avatar: 'https://randomuser.me/api/portraits/men/32.jpg' },
@@ -864,9 +866,40 @@ const PeopleSection = ({ styles }: SectionProps) => {
                 <ThemedText style={styles.employeeRole}>{employee.role}</ThemedText>
               </View>
             </View>
-            <TouchableOpacity style={styles.followButton} activeOpacity={0.8}>
-              <ThemedText style={styles.followText}>Follow</ThemedText>
-              <ThemedText style={styles.followIcon}>＋</ThemedText>
+            <TouchableOpacity
+              style={[
+                styles.followButton,
+                isFollowing(employee.id) && {
+                  backgroundColor: 'transparent',
+                  borderWidth: 1,
+                  borderColor: palette.mutedText,
+                },
+              ]}
+              onPress={() => {
+                if (isFollowing(employee.id)) {
+                  removeFollowing(employee.id);
+                } else {
+                  addFollowing({
+                    id: employee.id,
+                    userName: employee.name,
+                    title: employee.role,
+                    company: '',
+                    avatarUri: employee.avatar,
+                    timestamp: 'Just now',
+                  });
+                }
+              }}
+              activeOpacity={0.8}>
+              <ThemedText
+                style={[
+                  styles.followText,
+                  isFollowing(employee.id) && { color: palette.mutedText },
+                ]}>
+                {isFollowing(employee.id) ? 'Following' : 'Follow'}
+              </ThemedText>
+              {!isFollowing(employee.id) && (
+                <ThemedText style={styles.followIcon}>＋</ThemedText>
+              )}
             </TouchableOpacity>
           </View>
         ))}
