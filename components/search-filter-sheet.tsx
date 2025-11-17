@@ -4,20 +4,20 @@ import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  Animated,
-  Easing,
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  View,
+    Animated,
+    Easing,
+    KeyboardAvoidingView,
+    Modal,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 
 import {
-  GRADIENT_END,
-  GRADIENT_START
+    GRADIENT_END,
+    GRADIENT_START
 } from '@/constants/colors';
 import { useThemeColor } from '@/hooks/use-theme-color';
 
@@ -177,7 +177,7 @@ function useSearchFilterPalette() {
   const border = useThemeColor({ light: '#e5e7eb', dark: '#3a3a3a' }, 'background');
   const text = useThemeColor({}, 'text');
   const textMuted = useThemeColor({ light: '#64748b', dark: '#94a3b8' }, 'text');
-  const activeBackground = useThemeColor({ light: '#fff6ea', dark: '#3a2f1f' }, 'background');
+  const activeBackground = useThemeColor({ light: '#f0fdf4', dark: '#1a3a2f' }, 'background');
   const closeBtnBg = useThemeColor({ light: '#f4f4f4', dark: '#2a2a2a' }, 'background');
   const iconColor = useThemeColor({}, 'icon');
   const tint = useThemeColor({}, 'tint');

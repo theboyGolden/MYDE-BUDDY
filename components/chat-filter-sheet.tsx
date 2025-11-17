@@ -349,7 +349,7 @@ function useChatFilterPalette() {
     surfaceLight: useThemeColor({ light: '#F8FAFC', dark: '#2a2a2a' }, 'background'),
     border: useThemeColor({ light: '#e5e7eb', dark: '#3a3a3a' }, 'background'),
     textMuted: useThemeColor({ light: '#64748b', dark: '#94a3b8' }, 'text'),
-    activeBg: useThemeColor({ light: '#fff6ea', dark: '#3a2f1f' }, 'background'),
+    activeBg: useThemeColor({ light: '#f0fdf4', dark: '#1a3a2f' }, 'background'),
     closeBtnBg: useThemeColor({ light: '#f4f4f4', dark: '#2a2a2a' }, 'background'),
     shadow: theme === 'light' ? '#000000' : '#000000',
   };

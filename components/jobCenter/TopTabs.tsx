@@ -25,7 +25,7 @@ export default function TopTabs({
   const text = useThemeColor({}, "text");
   // Use brand color for tabs (consistent across themes)
   const brandColor = useThemeColor(
-    { light: "#e0971d", dark: "#e0971d" },
+    { light: "#046A38", dark: "#046A38" },
     "tint"
   );
   const muted = useThemeColor({ light: "#64748b", dark: "#94a3b8" }, "text");

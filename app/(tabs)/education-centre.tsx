@@ -136,7 +136,7 @@ export default function EducationCentreScreen() {
   const [activeTab, setActiveTab] = useState<'opportunities' | 'chat'>('opportunities');
   const [showChatHistory, setShowChatHistory] = useState(false);
   const backgroundColor = useThemeColor({}, 'background');
-  const tintColor = '#f97316'; // Orange color for active tab
+  const tintColor = '#046A38'; // Green color for active tab
   const textColor = useThemeColor({}, 'text');
   const textSecondary = useThemeColor(
     { light: '#666666', dark: '#999999' },
@@ -285,7 +285,7 @@ const styles = StyleSheet.create({
     minWidth: 120,
   },
   activeTab: {
-    backgroundColor: '#f97316',
+    backgroundColor: '#046A38',
   },
   inactiveTab: {
     backgroundColor: 'transparent',
@@ -342,7 +342,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     marginBottom: 20,
     borderRadius: 12,
-    backgroundColor: '#f97316', // Orange banner
+    backgroundColor: '#046A38', // Green banner
   },
   bannerText: {
     color: '#fff',

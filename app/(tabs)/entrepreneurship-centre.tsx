@@ -125,7 +125,7 @@ export default function EntrepreneurshipCentreScreen() {
   const [activeTab, setActiveTab] = useState<'opportunities' | 'chat'>('opportunities');
   const [showChatHistory, setShowChatHistory] = useState(false);
   const backgroundColor = useThemeColor({}, 'background');
-  const tintColor = '#eab308'; // Yellow color for active tab
+  const tintColor = '#046A38'; // Green color for active tab
   const textColor = useThemeColor({}, 'text');
   const textSecondary = useThemeColor(
     { light: '#666666', dark: '#999999' },
@@ -267,7 +267,7 @@ const styles = StyleSheet.create({
     minWidth: 120,
   },
   activeTab: {
-    backgroundColor: '#eab308',
+    backgroundColor: '#046A38',
   },
   inactiveTab: {
     backgroundColor: 'transparent',

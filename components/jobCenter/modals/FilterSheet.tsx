@@ -140,8 +140,8 @@ export default function FilterSheet({
   const text = useThemeColor({}, "text");
   const textMuted = useThemeColor({ light: "#64748b", dark: "#94a3b8" }, "text");
   const textSecondary = useThemeColor({ light: "#374151", dark: "#d1d5db" }, "text");
-  const activeBackground = useThemeColor({ light: "#fff6ea", dark: "#3a2f1f" }, "background");
-  const activeBackgroundAlt = useThemeColor({ light: "#fff4e5", dark: "#3a2f1f" }, "background");
+  const activeBackground = useThemeColor({ light: "#f0fdf4", dark: "#1a3a2f" }, "background");
+  const activeBackgroundAlt = useThemeColor({ light: "#ecfdf5", dark: "#1a3a2f" }, "background");
   const divider = useThemeColor({ light: "#f1f5f9", dark: "#3a3a3a" }, "background");
   const closeBtnBg = useThemeColor({ light: "#f4f4f4", dark: "#2a2a2a" }, "background");
   const iconColor = useThemeColor({}, "icon");

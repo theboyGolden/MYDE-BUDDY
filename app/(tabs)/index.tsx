@@ -120,7 +120,7 @@ export default function HomeScreen() {
   );
   // Use brand color for FAB button (consistent across themes)
   const fabColor = useThemeColor(
-    { light: '#e0971d', dark: '#e0971d' },
+    { light: '#046A38', dark: '#046A38' },
     'tint'
   );
   const borderColor = useThemeColor(

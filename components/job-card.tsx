@@ -104,7 +104,7 @@ export function JobCard({
               styles.matchBar,
               {
                 width: `${matchPercentage}%`,
-                backgroundColor: tintColor || '#e0971d',
+                backgroundColor: tintColor || '#046A38',
               },
             ]}
           />
@@ -120,13 +120,13 @@ export function JobCard({
           style={[
             styles.applyButton,
             {
-              backgroundColor: applyButtonBgColor,
-              borderColor: '#2196F3',
+              backgroundColor: '#046A38',
+              borderColor: '#046A38',
             },
           ]}
           onPress={onApply}
           activeOpacity={0.8}>
-          <MaterialIcons name="check" size={14} color="#2196F3" />
+          <MaterialIcons name="check" size={14} color="#fff" />
           <ThemedText style={styles.applyButtonText}>Apply Now</ThemedText>
         </TouchableOpacity>
         <TouchableOpacity
@@ -239,7 +239,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   applyButtonText: {
-    color: '#2196F3',
+    color: '#fff',
     fontSize: 12,
     fontWeight: '600',
   },

@@ -248,7 +248,7 @@ export function CreatePost({ onClose, onPost }: CreatePostProps) {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.postButton, { backgroundColor: '#e0971d' }]}
+            style={[styles.postButton, { backgroundColor: '#046A38' }]}
             onPress={handlePost}
             activeOpacity={0.8}>
             <FontAwesome5 name="paper-plane" size={18} color="#fff" />

@@ -41,7 +41,7 @@ export default function SettingsScreen() {
     'background'
   );
   const brandColor = useThemeColor(
-    { light: '#e0971d', dark: '#e0971d' },
+    { light: '#046A38', dark: '#046A38' },
     'tint'
   );
 

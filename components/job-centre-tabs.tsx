@@ -20,7 +20,7 @@ export function JobCentreTabs({ activeTab, onTabChange }: JobCentreTabsProps) {
         style={[
           styles.tab,
           activeTab === 'jobs' && {
-            borderBottomColor: tintColor || '#e0971d',
+            borderBottomColor: tintColor || '#046A38',
             borderBottomWidth: 2,
           },
         ]}
@@ -29,12 +29,12 @@ export function JobCentreTabs({ activeTab, onTabChange }: JobCentreTabsProps) {
         <MaterialIcons
           name="work-outline"
           size={20}
-          color={activeTab === 'jobs' ? tintColor || '#e0971d' : iconColor}
+          color={activeTab === 'jobs' ? tintColor || '#046A38' : iconColor}
         />
         <ThemedText
           style={[
             styles.tabText,
-            activeTab === 'jobs' && { color: tintColor || '#e0971d', fontWeight: '600' },
+            activeTab === 'jobs' && { color: tintColor || '#046A38', fontWeight: '600' },
           ]}>
           Job Opportunities
         </ThemedText>
@@ -44,7 +44,7 @@ export function JobCentreTabs({ activeTab, onTabChange }: JobCentreTabsProps) {
         style={[
           styles.tab,
           activeTab === 'ai-chat' && {
-            borderBottomColor: tintColor || '#e0971d',
+            borderBottomColor: tintColor || '#046A38',
             borderBottomWidth: 2,
           },
         ]}
@@ -53,12 +53,12 @@ export function JobCentreTabs({ activeTab, onTabChange }: JobCentreTabsProps) {
         <MaterialIcons
           name="chat-bubble-outline"
           size={20}
-          color={activeTab === 'ai-chat' ? tintColor || '#e0971d' : iconColor}
+          color={activeTab === 'ai-chat' ? tintColor || '#046A38' : iconColor}
         />
         <ThemedText
           style={[
             styles.tabText,
-            activeTab === 'ai-chat' && { color: tintColor || '#e0971d', fontWeight: '600' },
+            activeTab === 'ai-chat' && { color: tintColor || '#046A38', fontWeight: '600' },
           ]}>
           AI Chat Assistant
         </ThemedText>

@@ -65,7 +65,7 @@ export default function AISearch({ bookmarkedIds, onToggleBookmark }: Props) {
   const text = useThemeColor({}, "text");
   // Use brand color consistently (not tint which is white in dark mode)
   const brandColor = useThemeColor(
-    { light: "#e0971d", dark: "#e0971d" },
+    { light: "#046A38", dark: "#046A38" },
     "tint"
   );
   const muted = useThemeColor(

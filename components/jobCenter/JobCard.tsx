@@ -1,8 +1,10 @@
 import { ThemedText } from "@/components/themed-text";
 import type { Job } from "@/data/jobs";
 import { useThemeColor } from "@/hooks/use-theme-color";
+import { calculateJobMatch } from "@/utils/jobMatch";
 import { Ionicons } from "@expo/vector-icons";
-import React, { useState } from "react";
+import { useRouter } from "expo-router";
+import React, { useMemo, useState } from "react";
 import { Image, StyleSheet, TouchableOpacity, View } from "react-native";
 
 type Props = {
@@ -12,10 +14,11 @@ type Props = {
 };
 
 export default function JobCard({ job, isBookmarked, onToggleBookmark }: Props) {
+  const router = useRouter();
   const [imageError, setImageError] = useState(false);
   const text = useThemeColor({}, "text");
   // Use brand color consistently (not tint which is white in dark mode)
-  const brand = useThemeColor({ light: "#e0971d", dark: "#e0971d" }, "tint");
+  const brand = useThemeColor({ light: "#046A38", dark: "#046A38" }, "tint");
   const muted = useThemeColor({ light: "#64748b", dark: "#c7c7c7" }, "text");
   const surface = useThemeColor({ light: "#ffffff", dark: "#1f1f1f" }, "background");
   const tagBackground = useThemeColor({ light: "#f8fafc", dark: "#252525" }, "background");
@@ -32,8 +35,24 @@ export default function JobCard({ job, isBookmarked, onToggleBookmark }: Props) 
     .toUpperCase()
     .slice(0, 2);
 
+  // Calculate job match percentage
+  const matchPercentage = useMemo(() => calculateJobMatch(job), [job]);
+  
+  // Match bar background color
+  const matchBarBgColor = useThemeColor(
+    { light: "#e5e7eb", dark: "#3a3a3a" },
+    "background"
+  );
+
+  const handleCardPress = () => {
+    router.push({
+      pathname: "/job/[id]",
+      params: { id: job.id },
+    });
+  };
+
   return (
-    <View
+    <TouchableOpacity
       style={[
         styles.card,
         {
@@ -41,6 +60,8 @@ export default function JobCard({ job, isBookmarked, onToggleBookmark }: Props) 
           shadowColor,
         },
       ]}
+      onPress={handleCardPress}
+      activeOpacity={0.95}
     >
       <View style={styles.row}>
         <View style={styles.companyInfo}>
@@ -70,7 +91,13 @@ export default function JobCard({ job, isBookmarked, onToggleBookmark }: Props) 
             </ThemedText>
           </View>
         </View>
-        <TouchableOpacity style={styles.bookmarkBtn} onPress={() => onToggleBookmark(job.id)}>
+        <TouchableOpacity 
+          style={styles.bookmarkBtn} 
+          onPress={(e) => {
+            e.stopPropagation();
+            onToggleBookmark(job.id);
+          }}
+        >
           <Ionicons name={isBookmarked ? "bookmark" : "bookmark-outline"} size={24} color={brand} />
         </TouchableOpacity>
       </View>
@@ -88,10 +115,41 @@ export default function JobCard({ job, isBookmarked, onToggleBookmark }: Props) 
         </View>
       </View>
 
-      <TouchableOpacity style={[styles.applyButton, { backgroundColor: brand }]}>
+      {/* Match Percentage Section */}
+      <View style={styles.matchSection}>
+        <View style={styles.matchHeader}>
+          <ThemedText style={[styles.matchLabel, { color: muted }]}>Your Match</ThemedText>
+          <ThemedText style={[styles.matchPercentage, { color: brand }]}>
+            {matchPercentage}%
+          </ThemedText>
+        </View>
+        <View style={[styles.matchBarContainer, { backgroundColor: matchBarBgColor }]}>
+          <View
+            style={[
+              styles.matchBar,
+              {
+                width: `${matchPercentage}%`,
+                backgroundColor: brand,
+              },
+            ]}
+          />
+        </View>
+      </View>
+
+      <TouchableOpacity 
+        style={[styles.applyButton, { backgroundColor: brand }]}
+        onPress={(e) => {
+          e.stopPropagation();
+          router.push({
+            pathname: "/job/[id]",
+            params: { id: job.id },
+          });
+        }}
+        activeOpacity={0.8}
+      >
         <ThemedText style={styles.applyText}>Apply now</ThemedText>
       </TouchableOpacity>
-    </View>
+    </TouchableOpacity>
   );
 }
 
@@ -137,6 +195,32 @@ const styles = StyleSheet.create({
   timeTag: { flexDirection: "row", alignItems: "center", paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, gap: 4 },
   tagText: { fontSize: 12, fontWeight: "500" },
   timeText: { fontSize: 12, fontWeight: "500" },
+
+  matchSection: {
+    gap: 8,
+  },
+  matchHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  matchLabel: {
+    fontSize: 13,
+    fontWeight: "600",
+  },
+  matchPercentage: {
+    fontSize: 16,
+    fontWeight: "700",
+  },
+  matchBarContainer: {
+    height: 8,
+    borderRadius: 4,
+    overflow: "hidden",
+  },
+  matchBar: {
+    height: "100%",
+    borderRadius: 4,
+  },
 
   applyButton: { paddingVertical: 12, borderRadius: 12, alignItems: "center", justifyContent: "center" },
   applyText: { color: "#fff", fontSize: 16, fontWeight: "700" },
