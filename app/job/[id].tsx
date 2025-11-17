@@ -11,6 +11,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ThemedText } from "@/components/themed-text";
+import { useUserProfile } from "@/contexts/user-profile-context";
 import { JOBS } from "@/data/jobs";
 import { useThemeColor } from "@/hooks/use-theme-color";
 import {
@@ -23,15 +24,25 @@ export default function JobDetailsScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{ id: string }>();
   const jobId = params.id;
+  const { profile } = useUserProfile();
 
   const job = useMemo(() => JOBS.find((j) => j.id === jobId), [jobId]);
+  
+  // Convert profile to UserProfile format for jobMatch
+  const userProfileForMatch = useMemo(() => ({
+    skills: profile.skills,
+    experienceLevel: profile.experienceLevel,
+    yearsOfExperience: parseInt(profile.yearsOfExperience) || 0,
+    preferredCategories: profile.preferredCategories,
+  }), [profile]);
+
   const matchPercentage = useMemo(
-    () => (job ? calculateJobMatch(job) : 0),
-    [job]
+    () => (job ? calculateJobMatch(job, userProfileForMatch) : 0),
+    [job, userProfileForMatch]
   );
   const recommendations = useMemo(
-    () => (job ? getMatchRecommendations(job) : []),
-    [job]
+    () => (job ? getMatchRecommendations(job, userProfileForMatch) : []),
+    [job, userProfileForMatch]
   );
 
   const backgroundColor = useThemeColor({}, "background");

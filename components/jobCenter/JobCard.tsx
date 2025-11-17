@@ -1,4 +1,5 @@
 import { ThemedText } from "@/components/themed-text";
+import { useUserProfile } from "@/contexts/user-profile-context";
 import type { Job } from "@/data/jobs";
 import { useThemeColor } from "@/hooks/use-theme-color";
 import { calculateJobMatch } from "@/utils/jobMatch";
@@ -15,6 +16,7 @@ type Props = {
 
 export default function JobCard({ job, isBookmarked, onToggleBookmark }: Props) {
   const router = useRouter();
+  const { profile } = useUserProfile();
   const [imageError, setImageError] = useState(false);
   const text = useThemeColor({}, "text");
   // Use brand color consistently (not tint which is white in dark mode)
@@ -35,8 +37,16 @@ export default function JobCard({ job, isBookmarked, onToggleBookmark }: Props) 
     .toUpperCase()
     .slice(0, 2);
 
+  // Convert profile to UserProfile format for jobMatch
+  const userProfileForMatch = useMemo(() => ({
+    skills: profile.skills,
+    experienceLevel: profile.experienceLevel,
+    yearsOfExperience: parseInt(profile.yearsOfExperience) || 0,
+    preferredCategories: profile.preferredCategories,
+  }), [profile]);
+
   // Calculate job match percentage
-  const matchPercentage = useMemo(() => calculateJobMatch(job), [job]);
+  const matchPercentage = useMemo(() => calculateJobMatch(job, userProfileForMatch), [job, userProfileForMatch]);
   
   // Match bar background color
   const matchBarBgColor = useThemeColor(

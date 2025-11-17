@@ -19,11 +19,12 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Colors } from "@/constants/theme";
 import { useTheme } from "@/contexts/theme-context";
+import { useUserProfile } from "@/contexts/user-profile-context";
 import { UpdateUserImageSheet } from "../components/update-user-image-sheet";
 
 type ThemePalette = typeof Colors.light;
 
-const DEFAULT_AVATAR = "https://cdn-icons-png.flaticon.com/512/9131/9131529.png";
+const DEFAULT_AVATAR = "default"; // Special marker to use local profile.png
 
 type FormState = {
   firstName: string;
@@ -36,6 +37,9 @@ type FormState = {
   location: string;
   bio: string;
   avatar: string;
+  skills: string[];
+  experienceLevel: "entry" | "mid" | "senior" | "executive";
+  yearsOfExperience: string;
 };
 
   const paramToString = (value: string | string[] | undefined) => {
@@ -80,30 +84,60 @@ const formatDob = (date: Date | null) => {
 
 const normalizeDob = (value: string) => formatDob(parseDobString(value));
 
-const buildInitialFormState = (params: Record<string, string | string[] | undefined>): FormState => ({
-    firstName: paramToString(params.firstName),
-    lastName: paramToString(params.lastName),
-    jobTitle: paramToString(params.jobTitle),
-  company: paramToString(params.company) || "Lunar Studio",
-    email: paramToString(params.email),
-  dob: normalizeDob(paramToString(params.dob)),
-    gender: paramToString(params.gender) || "Male",
-    location: paramToString(params.location),
-  bio: paramToString(params.bio) || "",
-  avatar: paramToString(params.avatar) || DEFAULT_AVATAR,
+const parseSkills = (value: string | string[] | undefined): string[] => {
+  if (!value) return ["React", "TypeScript", "JavaScript", "Node.js", "UI Design", "Figma"];
+  if (Array.isArray(value)) {
+    return value.filter(Boolean);
+  }
+  // Try to parse as comma-separated string or JSON array
+  try {
+    const parsed = JSON.parse(value);
+    if (Array.isArray(parsed)) return parsed;
+  } catch {
+    // Not JSON, try comma-separated
+    if (value.includes(",")) {
+      return value.split(",").map(s => s.trim()).filter(Boolean);
+    }
+  }
+  return [value].filter(Boolean);
+};
+
+const buildInitialFormState = (
+  params: Record<string, string | string[] | undefined>,
+  profileData?: { firstName: string; lastName: string; jobTitle: string; company: string; email: string; dob: string; gender: string; location: string; bio: string; avatar: string; skills: string[]; experienceLevel: "entry" | "mid" | "senior" | "executive"; yearsOfExperience: string }
+): FormState => ({
+    firstName: paramToString(params.firstName) || profileData?.firstName || "",
+    lastName: paramToString(params.lastName) || profileData?.lastName || "",
+    jobTitle: paramToString(params.jobTitle) || profileData?.jobTitle || "",
+  company: paramToString(params.company) || profileData?.company || "Lunar Studio",
+    email: paramToString(params.email) || profileData?.email || "",
+  dob: normalizeDob(paramToString(params.dob)) || profileData?.dob || "",
+    gender: paramToString(params.gender) || profileData?.gender || "Male",
+    location: paramToString(params.location) || profileData?.location || "",
+  bio: paramToString(params.bio) || profileData?.bio || "",
+  avatar: paramToString(params.avatar) || profileData?.avatar || DEFAULT_AVATAR,
+  skills: parseSkills(params.skills).length > 0 ? parseSkills(params.skills) : (profileData?.skills || []),
+  experienceLevel: (paramToString(params.experienceLevel) || profileData?.experienceLevel || "mid") as "entry" | "mid" | "senior" | "executive",
+  yearsOfExperience: paramToString(params.yearsOfExperience) || profileData?.yearsOfExperience || "3",
 });
 
 export default function UserInfo() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const { colorScheme } = useTheme();
+  const { profile, updateProfile } = useUserProfile();
 
   const palette = useMemo<ThemePalette>(() => Colors[colorScheme], [colorScheme]);
+  const accent = useMemo(() => (colorScheme === "dark" ? "#046A38" : "#046A38"), [colorScheme]);
+  const saveTextColor = useMemo(() => (colorScheme === "dark" ? "#151718" : "#fff"), [colorScheme]);
+  const surface = useMemo(() => (colorScheme === "dark" ? "#1F2022" : "#FFFCF5"), [colorScheme]);
+  const borderColor = useMemo(() => (colorScheme === "dark" ? "#2F3133" : "#046A38"), [colorScheme]);
 
-  const [form, setForm] = useState<FormState>(() => buildInitialFormState(params));
+  const [form, setForm] = useState<FormState>(() => buildInitialFormState(params, profile));
   const [showImageSheet, setShowImageSheet] = useState(false);
   const [dobModalVisible, setDobModalVisible] = useState(false);
   const [tempDob, setTempDob] = useState<Date>(parseDobString(buildInitialFormState(params).dob) ?? new Date());
+  const [newSkill, setNewSkill] = useState("");
 
   const { styles, placeholderColor } = useMemo(
     () => createStyles(colorScheme, palette),
@@ -111,7 +145,7 @@ export default function UserInfo() {
   );
 
   useEffect(() => {
-    setForm(buildInitialFormState(params));
+    setForm(buildInitialFormState(params, profile));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     params.avatar,
@@ -124,6 +158,10 @@ export default function UserInfo() {
     params.location,
     params.company,
     params.bio,
+    params.skills,
+    params.experienceLevel,
+    params.yearsOfExperience,
+    profile,
   ]);
 
   useEffect(() => {
@@ -138,11 +176,47 @@ export default function UserInfo() {
     setForm((prev) => ({ ...prev, avatar: uri }));
   };
 
-  const handleSave = () => {
-    router.replace({
-      pathname: "/profile",
-      params: form,
-    });
+  const handleSave = async () => {
+    try {
+      await updateProfile({
+        firstName: form.firstName,
+        lastName: form.lastName,
+        jobTitle: form.jobTitle,
+        company: form.company,
+        email: form.email,
+        dob: form.dob,
+        gender: form.gender,
+        location: form.location,
+        bio: form.bio,
+        avatar: form.avatar,
+        skills: form.skills,
+        experienceLevel: form.experienceLevel,
+        yearsOfExperience: form.yearsOfExperience,
+      });
+      router.replace({
+        pathname: "/profile",
+      });
+    } catch (error) {
+      Alert.alert("Error", "Failed to save profile. Please try again.");
+    }
+  };
+
+  const handleAddSkill = () => {
+    const trimmed = newSkill.trim();
+    if (trimmed && !form.skills.includes(trimmed)) {
+      setForm((prev) => ({
+        ...prev,
+        skills: [...prev.skills, trimmed],
+      }));
+      setNewSkill("");
+    }
+  };
+
+  const handleRemoveSkill = (skillToRemove: string) => {
+    setForm((prev) => ({
+      ...prev,
+      skills: prev.skills.filter((skill) => skill !== skillToRemove),
+    }));
   };
 
   const onChooseFromLibrary = async () => {
@@ -247,9 +321,7 @@ export default function UserInfo() {
       {/* Profile Icon */}
       <View style={styles.imageContainer}>
         <Image
-          source={{
-              uri: form.avatar,
-          }}
+          source={form.avatar && form.avatar !== 'default' ? { uri: form.avatar } : require('@/assets/images/profile.png')}
           style={styles.avatar}
         />
           <TouchableOpacity style={styles.editIcon} onPress={() => setShowImageSheet(true)}>
@@ -354,6 +426,90 @@ export default function UserInfo() {
             onChangeText={(t) => handleInputChange("bio", t)}
             style={[styles.input, styles.bioInput]}
             placeholderTextColor={placeholderColor}
+        />
+
+        <Text style={styles.label}>Skills</Text>
+        <View style={styles.skillsInputContainer}>
+          <TextInput
+            placeholder="Add a skill (e.g., React, Python, Design)"
+            value={newSkill}
+            onChangeText={setNewSkill}
+            onSubmitEditing={handleAddSkill}
+            returnKeyType="done"
+            style={[styles.skillInput, { flex: 1 }]}
+            placeholderTextColor={placeholderColor}
+          />
+          <TouchableOpacity
+            onPress={handleAddSkill}
+            style={[styles.addSkillButton, { backgroundColor: accent }]}
+            activeOpacity={0.8}
+          >
+            <MaterialIcons name="add" size={20} color={saveTextColor} />
+          </TouchableOpacity>
+        </View>
+        <View style={styles.skillsContainer}>
+          {form.skills.map((skill, index) => (
+            <View key={index} style={[styles.skillTag, { backgroundColor: surface, borderColor }]}>
+              <Text style={[styles.skillTagText, { color: palette.text }]}>{skill}</Text>
+              <TouchableOpacity
+                onPress={() => handleRemoveSkill(skill)}
+                style={styles.removeSkillButton}
+                hitSlop={{ top: 5, bottom: 5, left: 5, right: 5 }}
+              >
+                <MaterialIcons name="close" size={16} color={palette.text} />
+              </TouchableOpacity>
+            </View>
+          ))}
+        </View>
+
+        <Text style={styles.label}>Experience Level</Text>
+        <View style={styles.experienceContainer}>
+          {(["entry", "mid", "senior", "executive"] as const).map((level) => {
+            const levelLabels: Record<string, string> = {
+              entry: "Entry Level",
+              mid: "Mid Level",
+              senior: "Senior Level",
+              executive: "Executive",
+            };
+            return (
+              <TouchableOpacity
+                key={level}
+                onPress={() => handleInputChange("experienceLevel", level)}
+                style={[
+                  styles.experienceOption,
+                  form.experienceLevel === level && styles.experienceActive,
+                  { borderColor },
+                ]}
+              >
+                {form.experienceLevel === level && (
+                  <MaterialIcons
+                    name="check-circle"
+                    size={18}
+                    color={colorScheme === "dark" ? "#151718" : "#fff"}
+                    style={{ marginRight: 5 }}
+                  />
+                )}
+                <Text
+                  style={[
+                    styles.experienceText,
+                    form.experienceLevel === level && styles.experienceTextActive,
+                  ]}
+                >
+                  {levelLabels[level]}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+
+        <Text style={styles.label}>Years of Experience</Text>
+        <TextInput
+          placeholder="Enter years of experience"
+          value={form.yearsOfExperience}
+          onChangeText={(t) => handleInputChange("yearsOfExperience", t)}
+          keyboardType="numeric"
+          style={styles.input}
+          placeholderTextColor={placeholderColor}
         />
       </View>
 
@@ -608,6 +764,79 @@ const createStyles = (colorScheme: "light" | "dark", palette: ThemePalette) => {
       backgroundColor: palette.background,
       height: 220,
       alignSelf: "stretch",
+    },
+    skillsInputContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+      marginBottom: 12,
+    },
+    skillInput: {
+      backgroundColor: surface,
+      borderWidth: 1,
+      borderColor,
+      borderRadius: 12,
+      paddingHorizontal: 12,
+      paddingVertical: 10,
+      fontSize: 14,
+      color: palette.text,
+    },
+    addSkillButton: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    skillsContainer: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: 8,
+      marginBottom: 10,
+    },
+    skillTag: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 20,
+      borderWidth: 1,
+      gap: 6,
+    },
+    skillTagText: {
+      fontSize: 13,
+      fontWeight: "500",
+    },
+    removeSkillButton: {
+      padding: 2,
+    },
+    experienceContainer: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: 8,
+      marginTop: 8,
+    },
+    experienceOption: {
+      flex: 1,
+      minWidth: "45%",
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      borderWidth: 1,
+      borderRadius: 25,
+      paddingVertical: 10,
+      backgroundColor: surface,
+    },
+    experienceActive: {
+      backgroundColor: accent,
+    },
+    experienceText: {
+      color: palette.text,
+      fontWeight: "500",
+      fontSize: 13,
+    },
+    experienceTextActive: {
+      color: saveTextColor,
     },
   });
 

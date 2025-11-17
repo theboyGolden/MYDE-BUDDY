@@ -6,6 +6,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { FollowingProvider } from '@/contexts/following-context';
 import { ThemeProvider, useTheme } from '@/contexts/theme-context';
+import { UserProfileProvider } from '@/contexts/user-profile-context';
 
 export const unstable_settings = {
   anchor: '(tabs)',
@@ -42,9 +43,11 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <ThemeProvider>
-        <FollowingProvider>
-          <RootLayoutNav />
-        </FollowingProvider>
+        <UserProfileProvider>
+          <FollowingProvider>
+            <RootLayoutNav />
+          </FollowingProvider>
+        </UserProfileProvider>
       </ThemeProvider>
     </SafeAreaProvider>
   );

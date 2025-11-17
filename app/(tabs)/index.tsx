@@ -18,6 +18,7 @@ import { PostsList } from '@/components/posts-list';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { WelcomeCard } from '@/components/welcome-card';
+import { useUserProfile } from '@/contexts/user-profile-context';
 import { useThemeColor } from '@/hooks/use-theme-color';
 
 // Sample posts data
@@ -110,6 +111,7 @@ export default function HomeScreen() {
   const [posts, setPosts] = useState(samplePosts);
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { profile } = useUserProfile();
   const backgroundColor = useThemeColor({}, 'background');
   const iconColor = useThemeColor({}, 'icon');
   const tintColor = useThemeColor({}, 'tint');
@@ -134,17 +136,18 @@ export default function HomeScreen() {
     imageUri?: string;
     videoUri?: string;
   }) => {
+    const userName = `${profile.firstName}${profile.lastName ? ` ${profile.lastName}` : ''}`;
     const newPost = {
       id: `post-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
-      userName: 'Dee', // Current user name
+      userName: userName || 'User',
       timestamp: 'Just now',
-      title: 'User',
+      title: profile.jobTitle || 'User',
       content: postData.content,
       imageUri: postData.imageUri,
       likes: 0,
       comments: 0,
       shares: 0,
-      avatarUri: 'https://ui-avatars.com/api/?name=Dee&size=48&background=e0971d&color=fff',
+      avatarUri: profile.avatar && profile.avatar !== 'default' ? profile.avatar : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(userName) + '&size=48&background=046A38&color=fff',
     } as typeof samplePosts[0];
     
     // Add new post to the beginning of the posts array
@@ -166,18 +169,23 @@ export default function HomeScreen() {
         <View style={styles.welcomeHeaderContent}>
           {/* Left side - Avatar and Text */}
           <View style={styles.welcomeHeaderLeft}>
-            <View style={styles.avatarContainer}>
+            <TouchableOpacity
+              onPress={() => router.push('/profile')}
+              activeOpacity={0.7}
+              accessibilityLabel="View profile"
+              accessibilityRole="button"
+              style={styles.avatarContainer}>
               <Image
-                source={require('@/assets/images/profile.png')}
+                source={profile.avatar && profile.avatar !== 'default' ? { uri: profile.avatar } : require('@/assets/images/profile.png')}
                 style={styles.avatar}
               />
-            </View>
+            </TouchableOpacity>
             <View style={styles.welcomeTextContainer}>
               <ThemedText style={[styles.welcomeGreeting, { color: textColor }]}>
-                Hi, Dee
+                Hi, {profile.firstName || 'User'}
               </ThemedText>
               <ThemedText style={[styles.welcomeSubtitle, { color: textSecondary }]}>
-                User
+                {profile.jobTitle || 'User'}
               </ThemedText>
             </View>
           </View>
@@ -193,7 +201,7 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
       </ThemedView>
-      <WelcomeCard userName="Dee" />
+      <WelcomeCard userName={profile.firstName || 'User'} />
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         <PostsList posts={posts} />
       </ScrollView>

@@ -1,5 +1,5 @@
 import { MaterialIcons } from "@expo/vector-icons";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import React, { useMemo } from "react";
 import {
     Image,
@@ -14,6 +14,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Colors } from "@/constants/theme";
 import { useTheme } from "@/contexts/theme-context";
+import { useUserProfile } from "@/contexts/user-profile-context";
 
 type ExperienceItem = {
   logo: ImageSourcePropType;
@@ -47,6 +48,22 @@ const paramToString = (value: string | string[] | undefined) => {
   return value ?? "";
 };
 
+const parseSkills = (value: string | string[] | undefined): string[] => {
+  if (!value) return ["Design & Creative", "Wireframing UX", "Figma", "UI Design", "Prototype", "Adobe XD", "UX Design", "Front End"];
+  if (Array.isArray(value)) {
+    return value.filter(Boolean);
+  }
+  try {
+    const parsed = JSON.parse(value);
+    if (Array.isArray(parsed)) return parsed;
+  } catch {
+    if (value.includes(",")) {
+      return value.split(",").map(s => s.trim()).filter(Boolean);
+    }
+  }
+  return [value].filter(Boolean);
+};
+
 const EXPERIENCE_ITEMS: ReadonlyArray<ExperienceItem> = [
   {
     logo: require("@/assets/images/netflix.png"),
@@ -77,8 +94,8 @@ type ThemePalette = typeof Colors.light;
 
 export default function ProfileScreen() {
   const router = useRouter();
-  const params = useLocalSearchParams();
   const { colorScheme } = useTheme();
+  const { profile } = useUserProfile();
   const palette = useMemo<ThemePalette>(() => Colors[colorScheme], [colorScheme]);
   const accent = useMemo(
     () => (colorScheme === "dark" ? "#F4A300" : palette.tint),
@@ -88,67 +105,27 @@ export default function ProfileScreen() {
   const styles = useMemo(() => createStyles(colorScheme, accent, palette), [colorScheme, accent, palette]);
 
   const user = useMemo(() => {
-    const mergedUser = { ...DEFAULT_USER };
+    return {
+      firstName: profile.firstName,
+      lastName: profile.lastName,
+      jobTitle: profile.jobTitle,
+      company: profile.company,
+      email: profile.email,
+      dob: profile.dob,
+      gender: profile.gender,
+      location: profile.location,
+      bio: profile.bio,
+      avatar: profile.avatar,
+    };
+  }, [profile]);
 
-    const firstName = paramToString(params.firstName);
-    if (firstName) mergedUser.firstName = firstName;
-
-    const lastName = paramToString(params.lastName);
-    if (lastName) mergedUser.lastName = lastName;
-
-    const jobTitle = paramToString(params.jobTitle);
-    if (jobTitle) mergedUser.jobTitle = jobTitle;
-
-    const email = paramToString(params.email);
-    if (email) mergedUser.email = email;
-
-    const dob = paramToString(params.dob);
-    if (dob) mergedUser.dob = dob;
-
-    const gender = paramToString(params.gender);
-    if (gender) mergedUser.gender = gender;
-
-    const location = paramToString(params.location);
-    if (location) mergedUser.location = location;
-
-    const company = paramToString(params.company);
-    if (company) mergedUser.company = company;
-
-    const bio = paramToString(params.bio);
-    if (bio) mergedUser.bio = bio;
-
-    const avatar = paramToString(params.avatar);
-    if (avatar) mergedUser.avatar = avatar;
-
-    return mergedUser;
-  }, [
-    params.dob,
-    params.email,
-    params.firstName,
-    params.gender,
-    params.jobTitle,
-    params.lastName,
-    params.location,
-    params.company,
-    params.bio,
-    params.avatar,
-  ]);
+  const userSkills = useMemo(() => profile.skills, [profile.skills]);
+  const experienceLevel = useMemo(() => profile.experienceLevel, [profile.experienceLevel]);
+  const yearsOfExperience = useMemo(() => profile.yearsOfExperience, [profile.yearsOfExperience]);
 
   const handleEditPress = () => {
     router.push({
       pathname: "/user-info",
-      params: {
-        firstName: user.firstName,
-        lastName: user.lastName,
-        jobTitle: user.jobTitle,
-        email: user.email,
-        dob: user.dob,
-        gender: user.gender,
-        location: user.location,
-        company: user.company,
-        bio: user.bio,
-        avatar: user.avatar,
-      },
     });
   };
 
@@ -170,9 +147,7 @@ export default function ProfileScreen() {
       {/* Profile Section */}
       <View style={styles.profileSection}>
         <Image
-          source={{
-              uri: user.avatar,
-            }}
+          source={user.avatar && user.avatar !== 'default' ? { uri: user.avatar } : require('@/assets/images/profile.png')}
           style={styles.avatar}
         />
         <Text style={styles.name}>
@@ -221,16 +196,7 @@ export default function ProfileScreen() {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Skills</Text>
         <View style={styles.skillsContainer}>
-          {[
-            "Design & Creative",
-            "Wireframing UX",
-            "Figma",
-            "UI Design",
-            "Prototype",
-            "Adobe XD",
-            "UX Design",
-            "Front End",
-          ].map((skill, i) => (
+          {userSkills.map((skill, i) => (
             <View
               key={i}
               style={[styles.skillChip, i === 0 && styles.activeSkillChip]}
@@ -242,6 +208,19 @@ export default function ProfileScreen() {
               </Text>
             </View>
           ))}
+        </View>
+      </View>
+
+      {/* Experience Section */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Experience</Text>
+        <View style={styles.experienceInfo}>
+          <Text style={[styles.experienceLabel, { color: palette.text }]}>
+            Level: <Text style={styles.experienceValue}>{experienceLevel.charAt(0).toUpperCase() + experienceLevel.slice(1)}</Text>
+          </Text>
+          <Text style={[styles.experienceLabel, { color: palette.text }]}>
+            Years: <Text style={styles.experienceValue}>{yearsOfExperience} {yearsOfExperience === "1" ? "year" : "years"}</Text>
+          </Text>
         </View>
       </View>
 
@@ -364,5 +343,17 @@ const createStyles = (colorScheme: "light" | "dark", accent: string, palette: Th
     skillText: { color: palette.text, fontWeight: "500", fontSize: 13 },
     activeSkillChip: { backgroundColor: accent },
     activeSkillText: { color: emphasisText },
+    experienceInfo: {
+      gap: 8,
+    },
+    experienceLabel: {
+      fontSize: 14,
+      fontWeight: "500",
+      marginBottom: 4,
+    },
+    experienceValue: {
+      fontWeight: "700",
+      color: accent,
+    },
   });
 };
