@@ -1,8 +1,8 @@
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import { Image } from 'expo-image';
+import { useFocusEffect, useRouter } from 'expo-router';
+import React, { useCallback, useState } from 'react';
 import {
-  Image,
   ScrollView,
   StyleSheet,
   Text,
@@ -10,6 +10,12 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -17,6 +23,31 @@ export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+
+  // Slide down animation
+  const translateY = useSharedValue(-1000);
+  const opacity = useSharedValue(0);
+
+  useFocusEffect(
+    useCallback(() => {
+      // Animate in when screen is focused
+      translateY.value = withTiming(0, {
+        duration: 600,
+        easing: Easing.out(Easing.cubic),
+      });
+      opacity.value = withTiming(1, {
+        duration: 600,
+        easing: Easing.out(Easing.cubic),
+      });
+    }, [])
+  );
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: translateY.value }],
+    opacity: opacity.value,
+  }));
+
+  // Note: Local images with require() are already bundled and load instantly
 
   const handleSignIn = () => {
     console.log('Sign in button pressed');
@@ -32,10 +63,18 @@ export default function LoginScreen() {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.scrollArea} showsVerticalScrollIndicator={false}>
-      <View style={styles.container}>
+    <Animated.View style={[styles.wrapper, animatedStyle]}>
+      <ScrollView contentContainerStyle={styles.scrollArea} showsVerticalScrollIndicator={false}>
+        <View style={styles.container}>
         <View style={styles.header}>
-          <Image source={require('@/assets/images/icon.png')} style={styles.logo} />
+          <Image 
+            source={require('@/assets/images/icon.png')} 
+            style={styles.logo}
+            contentFit="contain"
+            cachePolicy="memory-disk"
+            priority="high"
+            transition={200}
+          />
           <Text style={styles.welcome}>MYDE Buddy</Text>
           <Text style={styles.sub}>Sign in to continue</Text>
         </View>
@@ -126,10 +165,15 @@ export default function LoginScreen() {
         </View>
       </View>
     </ScrollView>
+    </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
+  wrapper: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
   scrollArea: {
     flexGrow: 1,
     backgroundColor: '#fff',

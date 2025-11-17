@@ -1,8 +1,8 @@
 import { FontAwesome5, MaterialIcons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-  Image,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -175,10 +175,13 @@ export default function HomeScreen() {
               accessibilityLabel="View profile"
               accessibilityRole="button"
               style={styles.avatarContainer}>
-              <Image
-                source={profile.avatar && profile.avatar !== 'default' ? { uri: profile.avatar } : require('@/assets/images/profile.png')}
-                style={styles.avatar}
-              />
+            <Image
+              source={profile.avatar && profile.avatar !== 'default' ? { uri: profile.avatar } : require('@/assets/images/profile.png')}
+              style={styles.avatar}
+              contentFit="cover"
+              cachePolicy="memory-disk"
+              transition={200}
+            />
             </TouchableOpacity>
             <View style={styles.welcomeTextContainer}>
               <ThemedText style={[styles.welcomeGreeting, { color: textColor }]}>

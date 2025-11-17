@@ -15,9 +15,13 @@ export const unstable_settings = {
 function RootLayoutNav() {
   const { colorScheme } = useTheme();
 
+  // Note: Local images with require() are already bundled with the app
+  // expo-image provides better caching and performance optimizations
+
   return (
     <NavigationThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack initialRouteName="login">
+      <Stack initialRouteName="landing">
+        <Stack.Screen name="landing" options={{ headerShown: false }} />
         <Stack.Screen name="login" options={{ headerShown: false }} />
         <Stack.Screen name="signup" options={{ headerShown: false }} />
         <Stack.Screen name="otp" options={{ headerShown: false }} />
