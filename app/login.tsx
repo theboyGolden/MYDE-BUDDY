@@ -30,13 +30,13 @@ export default function LoginScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      // Animate in when screen is focused
+      // Animate in when screen is focused - slower descent
       translateY.value = withTiming(0, {
-        duration: 600,
+        duration: 1500, // Increased from 600ms to 1500ms for slower animation
         easing: Easing.out(Easing.cubic),
       });
       opacity.value = withTiming(1, {
-        duration: 600,
+        duration: 1500, // Increased from 600ms to 1500ms for slower animation
         easing: Easing.out(Easing.cubic),
       });
     }, [])

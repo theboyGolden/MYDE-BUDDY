@@ -47,6 +47,7 @@ export default function LandingAnimated({ onAutoNavigate }: LandingAnimatedProps
   // expo-image provides better caching and performance than React Native's Image
 
   // Shared values
+  const containerTranslateY = useSharedValue(-SCREEN_HEIGHT); // Start off-screen at top
   const iconOpacity = useSharedValue(0);
   const iconScale = useSharedValue(0.8);
   const circleRadius = useSharedValue(INITIAL_RADIUS); // Starts from logo's size
@@ -59,6 +60,7 @@ export default function LandingAnimated({ onAutoNavigate }: LandingAnimatedProps
   useEffect(() => {
     if (reduceMotion) {
       // Simplified animation for reduced motion
+      containerTranslateY.value = withTiming(0, { duration: 300 });
       iconOpacity.value = withTiming(1, { duration: 300 });
       iconScale.value = withTiming(1, { duration: 300 });
       backgroundOpacity.value = withTiming(1, { duration: 300 });
@@ -66,6 +68,12 @@ export default function LandingAnimated({ onAutoNavigate }: LandingAnimatedProps
       subtitleOpacity.value = withDelay(700, withTiming(1, { duration: 300 }));
       return;
     }
+
+    // Step 0: Landing page descends from top (0-1.2s)
+    containerTranslateY.value = withTiming(0, {
+      duration: 1200,
+      easing: Easing.out(Easing.cubic),
+    });
 
     // Step 1: Icon appears first (0-0.6s)
     iconOpacity.value = withTiming(1, { duration: 600, easing: Easing.out(Easing.cubic) });
@@ -108,6 +116,7 @@ export default function LandingAnimated({ onAutoNavigate }: LandingAnimatedProps
     }, 4500);
 
     return () => {
+      cancelAnimation(containerTranslateY);
       cancelAnimation(circleRadius);
       cancelAnimation(backgroundOpacity);
       clearTimeout(navigateTimer);
@@ -115,6 +124,10 @@ export default function LandingAnimated({ onAutoNavigate }: LandingAnimatedProps
   }, [reduceMotion, onAutoNavigate]);
 
   // Animated styles
+  const containerStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: containerTranslateY.value }],
+  }));
+
   const iconStyle = useAnimatedStyle(() => ({
     opacity: iconOpacity.value,
     transform: [{ scale: iconScale.value }],
@@ -161,7 +174,7 @@ export default function LandingAnimated({ onAutoNavigate }: LandingAnimatedProps
       </View>
 
       {/* Content */}
-      <View style={styles.center}>
+      <Animated.View style={[styles.center, containerStyle]}>
         <Animated.View style={[styles.iconContainer, iconStyle]}>
           <Image
             source={require('@/assets/images/icon.png')}
@@ -176,7 +189,7 @@ export default function LandingAnimated({ onAutoNavigate }: LandingAnimatedProps
         <Animated.Text style={[styles.subtitle, subtitleStyle]}>
           Your professional world, smarter.
         </Animated.Text>
-      </View>
+      </Animated.View>
     </View>
   );
 }
