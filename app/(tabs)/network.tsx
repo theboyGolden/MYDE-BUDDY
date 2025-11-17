@@ -54,7 +54,7 @@ export default function NetworkingScreen() {
         {tabs.map((tab) => {
           const isActive = tab.key === activeTab;
           return (
-              <TouchableOpacity
+            <TouchableOpacity
               key={tab.key}
               style={[styles.tabButton, isActive && styles.tabButtonActive]}
               onPress={() => setActiveTab(tab.key)}
@@ -62,9 +62,9 @@ export default function NetworkingScreen() {
               <ThemedText
                 style={[styles.tabText, isActive ? styles.tabTextActive : styles.tabTextInactive]}>
                 {tab.label}
-                </ThemedText>
+              </ThemedText>
               {isActive && <View style={styles.activeIndicator} />}
-              </TouchableOpacity>
+            </TouchableOpacity>
           );
         })}
       </View>
@@ -110,13 +110,13 @@ function useNetworkingPalette() {
 
 function createStyles(palette: NetworkingPalette) {
   return StyleSheet.create({
-  container: {
-    flex: 1,
+    container: {
+      flex: 1,
       backgroundColor: palette.background,
-  },
-  scrollView: {
-    flex: 1,
-  },
+    },
+    scrollView: {
+      flex: 1,
+    },
     tabsContainer: {
       flexDirection: 'row',
       justifyContent: 'space-between',
@@ -171,7 +171,7 @@ function createStyles(palette: NetworkingPalette) {
       gap: 12,
       borderRadius: 20,
       backgroundColor: palette.surface,
-    padding: 20,
+      padding: 20,
       shadowColor: palette.cardShadow,
       shadowOpacity: palette.theme === 'light' ? 0.08 : 0.3,
       shadowRadius: 10,
@@ -194,7 +194,7 @@ function createStyles(palette: NetworkingPalette) {
     chatHeader: {
       flexDirection: 'row',
       alignItems: 'center',
-    gap: 12,
+      gap: 12,
     },
     searchBar: {
       flex: 1,
@@ -235,8 +235,8 @@ function createStyles(palette: NetworkingPalette) {
       gap: 16,
     },
     chatItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+      flexDirection: 'row',
+      alignItems: 'center',
       backgroundColor: palette.surface,
       borderRadius: 22,
       paddingVertical: 14,
@@ -280,7 +280,7 @@ function createStyles(palette: NetworkingPalette) {
       minWidth: 22,
       paddingHorizontal: 6,
       paddingVertical: 2,
-    borderRadius: 12,
+      borderRadius: 12,
       alignItems: 'center',
       justifyContent: 'center',
       backgroundColor: palette.tint,
@@ -322,7 +322,7 @@ function createStyles(palette: NetworkingPalette) {
       marginHorizontal: -8,
     },
     friendsContent: {
-    gap: 16,
+      gap: 16,
       paddingHorizontal: 8,
     },
     friendCard: {
@@ -354,7 +354,12 @@ function createStyles(palette: NetworkingPalette) {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 12,
-    flex: 1,
+      flex: 1,
+      minWidth: 0, // Allow flex child to shrink
+    },
+    employeeTextContainer: {
+      flex: 1,
+      minWidth: 0, // Allow text to truncate
     },
     employeeAvatar: {
       width: 52,
@@ -374,19 +379,20 @@ function createStyles(palette: NetworkingPalette) {
     followButton: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 6,
+      gap: 4,
       backgroundColor: palette.followButtonBg,
-      paddingVertical: 8,
-      paddingHorizontal: 14,
-      borderRadius: 20,
+      paddingVertical: 6,
+      paddingHorizontal: 12,
+      borderRadius: 16,
+      flexShrink: 0, // Prevent button from shrinking
     },
     followText: {
-      fontSize: 13,
+      fontSize: 12,
       fontWeight: '700',
       color: palette.followButtonText,
     },
     followIcon: {
-      fontSize: 14,
+      fontSize: 12,
       fontWeight: '700',
       color: palette.followButtonText,
       marginTop: -1,
@@ -396,10 +402,10 @@ function createStyles(palette: NetworkingPalette) {
       marginTop: 8,
     },
     seeMoreText: {
-    fontSize: 16,
+      fontSize: 16,
       fontWeight: '700',
       color: palette.seeMoreText,
-  },
+    },
     followingWrapper: {
       gap: 16,
     },
@@ -494,7 +500,7 @@ function createStyles(palette: NetworkingPalette) {
       fontSize: 16,
       textAlign: 'center',
     },
-});
+  });
 }
 
 type SectionProps = {
@@ -584,10 +590,14 @@ const RequestsSection = ({ styles, palette }: SectionProps) => {
 
 const ChatSection = ({ styles, palette }: SectionProps) => {
   const router = useRouter();
-  const [showFilters, setShowFilters] = useState(false);
+  const [showFilter, setShowFilter] = useState(false);
   const [showCreateChat, setShowCreateChat] = useState(false);
-  const [filters, setFilters] = useState<ChatFilterOptions>({});
-  const [chats, setChats] = useState([
+  const [filterOptions, setFilterOptions] = useState<ChatFilterOptions>({
+    sortBy: 'recent',
+    unreadOnly: false,
+  });
+
+  const chats = [
     {
       id: '1',
       name: 'Richar Kandowen',
@@ -676,40 +686,24 @@ const ChatSection = ({ styles, palette }: SectionProps) => {
         },
       ],
     },
-  ]);
+  ];
 
-  const handleApplyFilters = (appliedFilters: ChatFilterOptions) => {
-    setFilters(appliedFilters);
-    // TODO: Apply filters to chat list
-  };
+  const filteredChats = useMemo(() => {
+    let result = [...chats];
 
-  const handleSelectUser = (user: User) => {
-    // Create a new chat with the selected user
-    const chatId = `chat-${Date.now()}`;
-    const newChat = {
-      id: chatId,
-      name: user.name,
-      message: 'Start a conversation...',
-      time: 'Now',
-      unreadCount: 0,
-      avatar: user.avatar,
-      messages: [],
-    };
-    
-    // Add the new chat to the beginning of the list
-    setChats((prev) => [newChat, ...prev]);
-    
-    // Navigate to the new chat with user info as params
-    router.push({
-      pathname: '/chat/[id]',
-      params: { 
-        id: chatId,
-        name: user.name,
-        avatar: user.avatar,
-        status: user.status,
-      },
-    });
-  };
+    if (filterOptions.unreadOnly) {
+      result = result.filter((chat) => chat.unreadCount > 0);
+    }
+
+    if (filterOptions.sortBy === 'recent') {
+      result.sort((a, b) => {
+        // Simple sort - in real app would use actual timestamps
+        return b.unreadCount - a.unreadCount;
+      });
+    }
+
+    return result;
+  }, [filterOptions]);
 
   return (
     <View style={styles.chatWrapper}>
@@ -724,21 +718,14 @@ const ChatSection = ({ styles, palette }: SectionProps) => {
         </View>
         <TouchableOpacity
           style={styles.filterButton}
-          activeOpacity={0.75}
-          onPress={() => setShowFilters(true)}>
+          onPress={() => setShowFilter(true)}
+          activeOpacity={0.75}>
           <MaterialIcons name="tune" size={20} color={palette.surface} />
         </TouchableOpacity>
       </View>
 
-      <ChatFilterSheet
-        visible={showFilters}
-        onClose={() => setShowFilters(false)}
-        onApply={handleApplyFilters}
-        initialFilters={filters}
-      />
-
       <View style={styles.chatList}>
-        {chats.map((chat) => {
+        {filteredChats.map((chat) => {
           return (
             <TouchableOpacity
               key={chat.id}
@@ -770,15 +757,33 @@ const ChatSection = ({ styles, palette }: SectionProps) => {
 
       <TouchableOpacity
         style={styles.fab}
-        activeOpacity={0.75}
-        onPress={() => setShowCreateChat(true)}>
+        onPress={() => setShowCreateChat(true)}
+        activeOpacity={0.75}>
         <MaterialIcons name="add" size={24} color={palette.surface} />
       </TouchableOpacity>
+
+      <ChatFilterSheet
+        visible={showFilter}
+        onClose={() => setShowFilter(false)}
+        options={filterOptions}
+        onApply={(options) => {
+          setFilterOptions(options);
+          setShowFilter(false);
+        }}
+      />
 
       <CreateChatModal
         visible={showCreateChat}
         onClose={() => setShowCreateChat(false)}
-        onSelectUser={handleSelectUser}
+        onSelectUser={(user: User) => {
+          console.log('Selected user:', user);
+          setShowCreateChat(false);
+          // Navigate to chat with selected user
+          router.push({
+            pathname: '/chat/[id]',
+            params: { id: user.id },
+          });
+        }}
       />
     </View>
   );
@@ -861,9 +866,9 @@ const PeopleSection = ({ styles, palette }: SectionProps) => {
           <View key={employee.id} style={styles.employeeRow}>
             <View style={styles.employeeInfo}>
               <Image source={{ uri: employee.avatar }} style={styles.employeeAvatar} />
-              <View>
-                <ThemedText style={styles.employeeName}>{employee.name}</ThemedText>
-                <ThemedText style={styles.employeeRole}>{employee.role}</ThemedText>
+              <View style={styles.employeeTextContainer}>
+                <ThemedText style={styles.employeeName} numberOfLines={1}>{employee.name}</ThemedText>
+                <ThemedText style={styles.employeeRole} numberOfLines={1}>{employee.role}</ThemedText>
               </View>
             </View>
             <TouchableOpacity
@@ -886,6 +891,7 @@ const PeopleSection = ({ styles, palette }: SectionProps) => {
                     company: '',
                     avatarUri: employee.avatar,
                     timestamp: 'Just now',
+                    followedAt: new Date(),
                   });
                 }
               }}
@@ -910,3 +916,4 @@ const PeopleSection = ({ styles, palette }: SectionProps) => {
     </View>
   );
 };
+

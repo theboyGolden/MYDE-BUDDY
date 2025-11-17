@@ -52,7 +52,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="more"
+        name="network"
         options={{
           title: 'Network',
           tabBarIcon: ({ color }) => <FontAwesome5 name="users" size={24} color={color} />,
