@@ -52,27 +52,33 @@ export function ScholarshipCard({
         },
       ]}>
       <View style={styles.content}>
-        {/* Image Section */}
-        {imageUri && (
-          <View style={styles.imageContainer}>
-            <Image
-              source={typeof imageUri === 'number' ? imageUri : { uri: imageUri }}
-              style={styles.image}
-              resizeMode="cover"
-            />
+        {/* Top Row: Image and Content */}
+        <View style={styles.topRow}>
+          {/* Image Section */}
+          {imageUri && (
+            <View style={styles.imageContainer}>
+              <Image
+                source={typeof imageUri === 'number' ? imageUri : { uri: imageUri }}
+                style={styles.image}
+                resizeMode="cover"
+              />
+            </View>
+          )}
+
+          {/* Content Section */}
+          <View style={styles.textContainer}>
+            <ThemedText type="defaultSemiBold" style={styles.title} numberOfLines={2}>
+              {title}
+            </ThemedText>
+
+            <ThemedText style={[styles.description, { color: textSecondary }]} numberOfLines={3}>
+              {description}
+            </ThemedText>
           </View>
-        )}
+        </View>
 
-        {/* Content Section */}
-        <View style={styles.textContainer}>
-          <ThemedText type="defaultSemiBold" style={styles.title} numberOfLines={2}>
-            {title}
-          </ThemedText>
-
-          <ThemedText style={[styles.description, { color: textSecondary }]} numberOfLines={3}>
-            {description}
-          </ThemedText>
-
+        {/* Bottom Row: Metadata and Apply Button */}
+        <View style={styles.bottomRow}>
           <View style={styles.metaContainer}>
             <View style={styles.metaItem}>
               <FontAwesome5 name="map-marker-alt" size={12} color={iconColor} />
@@ -86,13 +92,18 @@ export function ScholarshipCard({
                 {views} views
               </ThemedText>
             </View>
+            <View style={styles.metaItem}>
+              <FontAwesome5 name="calendar-alt" size={12} color={iconColor} />
+              <ThemedText style={[
+                styles.metaText,
+                { color: textSecondary },
+                deadline.toLowerCase() === 'varies' && { color: '#fbbf24' },
+                deadline.toLowerCase() === 'ongoing' && { color: '#046A38' }
+              ]}>
+                {deadline}
+              </ThemedText>
+            </View>
           </View>
-        </View>
-
-        {/* Right Section - Deadline and Apply */}
-        <View style={styles.actionContainer}>
-          <ThemedText style={styles.deadline}>Deadline</ThemedText>
-          <ThemedText style={styles.deadlineDate}>{deadline}</ThemedText>
           <TouchableOpacity
             style={styles.applyButton}
             onPress={onApply}
@@ -113,13 +124,16 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   content: {
-    flexDirection: 'row',
     padding: 16,
     gap: 12,
   },
+  topRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
   imageContainer: {
-    width: 80,
-    height: 80,
+    width: 60,
+    height: 60,
     borderRadius: 8,
     overflow: 'hidden',
   },
@@ -141,10 +155,17 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     flex: 1,
   },
+  bottomRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 8,
+    marginLeft: 10  },
   metaContainer: {
     flexDirection: 'row',
-    gap: 16,
-    marginTop: 8,
+    flexWrap: 'wrap',
+    gap: 12,
+    flex: 1,
   },
   metaItem: {
     flexDirection: 'row',
@@ -154,29 +175,12 @@ const styles = StyleSheet.create({
   metaText: {
     fontSize: 12,
   },
-  actionContainer: {
-    alignItems: 'flex-end',
-    justifyContent: 'space-between',
-    minWidth: 100,
-  },
-  deadline: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#ef4444',
-    marginBottom: 4,
-  },
-  deadlineDate: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#ef4444',
-    marginBottom: 12,
-  },
   applyButton: {
-    backgroundColor: '#3b82f6',
-    paddingHorizontal: 24,
-    paddingVertical: 10,
-    borderRadius: 8,
-    minWidth: 80,
+    backgroundColor: '#046A38',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 16,
+    minWidth: 60,
     alignItems: 'center',
   },
   applyButtonText: {

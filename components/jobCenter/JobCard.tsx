@@ -5,22 +5,194 @@ import { useThemeColor } from "@/hooks/use-theme-color";
 import { calculateJobMatch } from "@/utils/jobMatch";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Image, StyleSheet, TouchableOpacity, View } from "react-native";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import Animated, {
+  Easing,
+  interpolateColor,
+  runOnJS,
+  useAnimatedProps,
+  useAnimatedReaction,
+  useAnimatedStyle,
+  useSharedValue,
+  withDelay,
+  withSequence,
+  withSpring,
+  withTiming,
+} from "react-native-reanimated";
 
 type Props = {
   job: Job;
   isBookmarked: boolean;
   onToggleBookmark: (id: string) => void;
+  index?: number;
+  shouldAnimate?: boolean;
 };
 
-export default function JobCard({ job, isBookmarked, onToggleBookmark }: Props) {
+const STAGGER_DELAY = 200; // 200ms delay between each card
+const ANIMATION_DURATION = 500;
+
+export default function JobCard({ 
+  job, 
+  isBookmarked, 
+  onToggleBookmark,
+  index = 0,
+  shouldAnimate = false,
+}: Props) {
   const router = useRouter();
   const { profile } = useUserProfile();
   const [imageError, setImageError] = useState(false);
   const text = useThemeColor({}, "text");
+  
+  // Entrance animation: slide, fade, and scale
+  // Start hidden - will animate when shouldAnimate becomes true
+  const opacity = useSharedValue(shouldAnimate ? 0 : 1);
+  const translateY = useSharedValue(shouldAnimate ? 20 : 0);
+  const scale = useSharedValue(shouldAnimate ? 0.95 : 1);
+  
+  // Match percentage animations
+  const progressWidth = useSharedValue(0);
+  const animatedPercentage = useSharedValue(0);
+  
+  // Bookmark animation values
+  const bookmarkScale = useSharedValue(1);
+  const bookmarkRotation = useSharedValue(0);
+  const sparkOpacity = useSharedValue(0);
+  const sparkScale = useSharedValue(0);
+  const bookmarkColorProgress = useSharedValue(isBookmarked ? 1 : 0);
+  
+  // Calculate job match percentage (moved up to use in initial state)
+  const userProfileForMatch = useMemo(() => ({
+    skills: profile.skills,
+    experienceLevel: profile.experienceLevel,
+    yearsOfExperience: parseInt(profile.yearsOfExperience) || 0,
+    preferredCategories: profile.preferredCategories,
+  }), [profile]);
+  const matchPercentage = useMemo(() => calculateJobMatch(job, userProfileForMatch), [job, userProfileForMatch]);
+  
+  const [displayPercentage, setDisplayPercentage] = useState(shouldAnimate ? 0 : matchPercentage);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+    transform: [
+      { translateY: translateY.value },
+      { scale: scale.value },
+    ],
+  }));
+
+  // Animated style for progress bar
+  const progressBarStyle = useAnimatedStyle(() => ({
+    width: `${progressWidth.value}%`,
+  }));
+
+  // Update display percentage when animated value changes
+  useAnimatedReaction(
+    () => animatedPercentage.value,
+    (value) => {
+      'worklet';
+      // Update on JS thread for React to re-render
+      runOnJS(setDisplayPercentage)(Math.round(value));
+    }
+  );
+
+  // Bookmark tap handler - prevents parent TouchableOpacity from firing
+  const bookmarkTap = Gesture.Tap()
+    .onStart(() => {
+      'worklet';
+      // Scale down
+      bookmarkScale.value = withTiming(0.8, {
+        duration: 100,
+        easing: Easing.out(Easing.ease),
+      });
+    })
+    .onEnd(() => {
+      'worklet';
+      // Trigger bookmark toggle
+      runOnJS(onToggleBookmark)(job.id);
+      
+      // Bounce animation sequence
+      bookmarkScale.value = withSequence(
+        withTiming(1.3, {
+          duration: 200,
+          easing: Easing.out(Easing.ease),
+        }),
+        withSpring(1, {
+          damping: 8,
+          stiffness: 300,
+        })
+      );
+      
+      // Rotation bounce
+      bookmarkRotation.value = withSequence(
+        withTiming(15, {
+          duration: 150,
+          easing: Easing.out(Easing.ease),
+        }),
+        withTiming(-15, {
+          duration: 150,
+          easing: Easing.out(Easing.ease),
+        }),
+        withSpring(0, {
+          damping: 8,
+          stiffness: 300,
+        })
+      );
+      
+      // Spark effect
+      sparkOpacity.value = withSequence(
+        withTiming(1, { duration: 100 }),
+        withDelay(200, withTiming(0, { duration: 300 }))
+      );
+      sparkScale.value = withSequence(
+        withTiming(1.5, { duration: 100 }),
+        withDelay(200, withTiming(2, { duration: 300 }))
+      );
+    })
+    .shouldCancelWhenOutside(true);
+
+  // Bookmark animated styles
+  const bookmarkAnimatedStyle = useAnimatedStyle(() => {
+    return {
+      transform: [
+        { scale: bookmarkScale.value },
+        { rotate: `${bookmarkRotation.value}deg` },
+      ],
+    };
+  });
+
   // Use brand color consistently (not tint which is white in dark mode)
   const brand = useThemeColor({ light: "#046A38", dark: "#046A38" }, "tint");
+  const bookmarkActiveColor = "#FFD700"; // Gold color for bookmarked state
+  
+  // Create animated icon component
+  const AnimatedIonicons = Animated.createAnimatedComponent(Ionicons);
+  
+  const bookmarkIconProps = useAnimatedProps(() => {
+    // Interpolate from brand color (0) to bookmark active color (1)
+    // Using string literals directly for worklet compatibility
+    const color = interpolateColor(
+      bookmarkColorProgress.value,
+      [0, 1],
+      ["#046A38", "#FFD700"]
+    );
+    return {
+      color,
+    } as any;
+  });
+
+  // Update color progress when bookmark state changes
+  useEffect(() => {
+    bookmarkColorProgress.value = withTiming(isBookmarked ? 1 : 0, {
+      duration: 300,
+      easing: Easing.out(Easing.ease),
+    });
+  }, [isBookmarked]);
+
+  const sparkAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: sparkOpacity.value,
+    transform: [{ scale: sparkScale.value }],
+  }));
   const muted = useThemeColor({ light: "#64748b", dark: "#c7c7c7" }, "text");
   const surface = useThemeColor({ light: "#ffffff", dark: "#1f1f1f" }, "background");
   const tagBackground = useThemeColor({ light: "#f8fafc", dark: "#252525" }, "background");
@@ -36,23 +208,70 @@ export default function JobCard({ job, isBookmarked, onToggleBookmark }: Props) 
     .join("")
     .toUpperCase()
     .slice(0, 2);
-
-  // Convert profile to UserProfile format for jobMatch
-  const userProfileForMatch = useMemo(() => ({
-    skills: profile.skills,
-    experienceLevel: profile.experienceLevel,
-    yearsOfExperience: parseInt(profile.yearsOfExperience) || 0,
-    preferredCategories: profile.preferredCategories,
-  }), [profile]);
-
-  // Calculate job match percentage
-  const matchPercentage = useMemo(() => calculateJobMatch(job, userProfileForMatch), [job, userProfileForMatch]);
   
   // Match bar background color
   const matchBarBgColor = useThemeColor(
     { light: "#e5e7eb", dark: "#3a3a3a" },
     "background"
   );
+
+  // Entrance and progress animations
+  useEffect(() => {
+    if (shouldAnimate) {
+      const delay = index * STAGGER_DELAY;
+      const cardAnimationDelay = delay + ANIMATION_DURATION; // Start after card entrance
+      
+      // Reset to initial animation state
+      opacity.value = 0;
+      translateY.value = 20;
+      scale.value = 0.95;
+      progressWidth.value = 0;
+      animatedPercentage.value = 0;
+      
+      // Animate with stagger delay
+      opacity.value = withDelay(
+        delay,
+        withTiming(1, {
+          duration: ANIMATION_DURATION,
+          easing: Easing.out(Easing.ease),
+        })
+      );
+      translateY.value = withDelay(
+        delay,
+        withTiming(0, {
+          duration: ANIMATION_DURATION,
+          easing: Easing.out(Easing.ease),
+        })
+      );
+      scale.value = withDelay(
+        delay,
+        withTiming(1, {
+          duration: ANIMATION_DURATION,
+          easing: Easing.out(Easing.ease),
+        })
+      );
+      
+      // Animate progress bar and percentage after card entrance
+      progressWidth.value = withDelay(
+        cardAnimationDelay,
+        withTiming(matchPercentage, {
+          duration: 800,
+          easing: Easing.out(Easing.ease),
+        })
+      );
+      animatedPercentage.value = withDelay(
+        cardAnimationDelay,
+        withTiming(matchPercentage, {
+          duration: 800,
+          easing: Easing.out(Easing.ease),
+        })
+      );
+    } else {
+      // If not animating, set values immediately
+      progressWidth.value = matchPercentage;
+      animatedPercentage.value = matchPercentage;
+    }
+  }, [shouldAnimate, index, matchPercentage]);
 
   const handleCardPress = () => {
     router.push({
@@ -62,17 +281,18 @@ export default function JobCard({ job, isBookmarked, onToggleBookmark }: Props) 
   };
 
   return (
-    <TouchableOpacity
-      style={[
-        styles.card,
-        {
-          backgroundColor: surface,
-          shadowColor,
-        },
-      ]}
-      onPress={handleCardPress}
-      activeOpacity={0.95}
-    >
+    <Animated.View style={animatedStyle}>
+      <TouchableOpacity
+        style={[
+          styles.card,
+          {
+            backgroundColor: surface,
+            shadowColor,
+          },
+        ]}
+        onPress={handleCardPress}
+        activeOpacity={0.95}
+      >
       <View style={styles.row}>
         <View style={styles.companyInfo}>
           <View style={[styles.logoContainer, { backgroundColor: logoBg }]}>
@@ -101,15 +321,24 @@ export default function JobCard({ job, isBookmarked, onToggleBookmark }: Props) 
             </ThemedText>
           </View>
         </View>
-        <TouchableOpacity 
-          style={styles.bookmarkBtn} 
-          onPress={(e) => {
-            e.stopPropagation();
-            onToggleBookmark(job.id);
-          }}
+        <View
+          onStartShouldSetResponder={() => true}
+          onMoveShouldSetResponder={() => true}
+          onResponderTerminationRequest={() => false}
         >
-          <Ionicons name={isBookmarked ? "bookmark" : "bookmark-outline"} size={24} color={brand} />
-        </TouchableOpacity>
+          <GestureDetector gesture={bookmarkTap}>
+            <Animated.View style={[styles.bookmarkBtn, bookmarkAnimatedStyle]}>
+              <Animated.View style={sparkAnimatedStyle}>
+                <Ionicons name="sparkles" size={32} color={bookmarkActiveColor} style={styles.sparkIcon} />
+              </Animated.View>
+              <AnimatedIonicons 
+                name={isBookmarked ? "bookmark" : "bookmark-outline"} 
+                size={24} 
+                animatedProps={bookmarkIconProps}
+              />
+            </Animated.View>
+          </GestureDetector>
+        </View>
       </View>
 
       <View style={styles.tagsRow}>
@@ -130,15 +359,15 @@ export default function JobCard({ job, isBookmarked, onToggleBookmark }: Props) 
         <View style={styles.matchHeader}>
           <ThemedText style={[styles.matchLabel, { color: muted }]}>Your Match</ThemedText>
           <ThemedText style={[styles.matchPercentage, { color: brand }]}>
-            {matchPercentage}%
+            {displayPercentage}%
           </ThemedText>
         </View>
         <View style={[styles.matchBarContainer, { backgroundColor: matchBarBgColor }]}>
-          <View
+          <Animated.View
             style={[
               styles.matchBar,
+              progressBarStyle,
               {
-                width: `${matchPercentage}%`,
                 backgroundColor: brand,
               },
             ]}
@@ -159,7 +388,8 @@ export default function JobCard({ job, isBookmarked, onToggleBookmark }: Props) 
       >
         <ThemedText style={styles.applyText}>Apply now</ThemedText>
       </TouchableOpacity>
-    </TouchableOpacity>
+      </TouchableOpacity>
+    </Animated.View>
   );
 }
 
@@ -198,7 +428,16 @@ const styles = StyleSheet.create({
   company: { fontWeight: "600", fontSize: 14 },
   title: { fontWeight: "700", fontSize: 18 },
   salary: { fontWeight: "600", fontSize: 14 },
-  bookmarkBtn: { padding: 4 },
+  bookmarkBtn: { 
+    padding: 4,
+    position: "relative",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  sparkIcon: {
+    position: "absolute",
+    opacity: 0.6,
+  },
 
   tagsRow: { flexDirection: "row", gap: 8, flexWrap: "wrap" },
   tag: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, borderWidth: 1 },

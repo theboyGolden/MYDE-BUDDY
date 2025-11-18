@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { StyleSheet, View } from "react-native";
 
 import { Header } from "@/components/header";
@@ -14,6 +14,7 @@ import { JOBS, Job } from "@/data/jobs";
 
 export default function JobCenterScreen() {
   const [activeTab, setActiveTab] = useState<JobCenterTab>("jobs");
+  const [isLoading, setIsLoading] = useState(true);
 
   const [showFilters, setShowFilters] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -98,6 +99,28 @@ export default function JobCenterScreen() {
     setShowFilters(false);
   };
 
+  // Simulate async data loading
+  useEffect(() => {
+    // Simulate initial load
+    if (isLoading) {
+      const timer = setTimeout(() => {
+        setIsLoading(false);
+      }, 3000); // 3 second loading simulation
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
+  // Simulate loading when filters/search change (optional - can be removed if not desired)
+  useEffect(() => {
+    if (!isLoading) {
+      // Optional: show brief loading on filter/search changes
+      // Uncomment if you want loading on filter changes:
+      // setIsLoading(true);
+      // const timer = setTimeout(() => setIsLoading(false), 500);
+      // return () => clearTimeout(timer);
+    }
+  }, [activeFilters, searchQuery]);
+
   return (
     <ThemedView style={styles.container}>
       <Header title="Job Centre" />
@@ -135,6 +158,7 @@ export default function JobCenterScreen() {
             bookmarkedIds={bookmarkedIds}
             onToggleBookmark={toggleBookmark}
             contentInset={{ bottom: 28 }}
+            isLoading={isLoading}
           />
         )}
 
@@ -144,6 +168,7 @@ export default function JobCenterScreen() {
             bookmarkedIds={bookmarkedIds}
             onToggleBookmark={toggleBookmark}
             contentInset={{ bottom: 28 }}
+            isLoading={isLoading && savedJobs.length === 0}
           />
         )}
 

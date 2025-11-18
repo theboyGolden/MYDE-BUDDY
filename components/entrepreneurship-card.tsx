@@ -49,21 +49,27 @@ export function EntrepreneurshipCard({
         },
       ]}>
       <View style={styles.content}>
-        {/* Left Icon */}
-        <View style={[styles.iconContainer, { backgroundColor: iconColor }]}>
-          <FontAwesome5 name="rocket" size={24} color="#fff" />
+        {/* Top Row: Icon and Content */}
+        <View style={styles.topRow}>
+          {/* Icon Section */}
+          <View style={[styles.iconContainer, { backgroundColor: iconColor }]}>
+            <FontAwesome5 name="rocket" size={24} color="#fff" />
+          </View>
+
+          {/* Content Section */}
+          <View style={styles.textContainer}>
+            <ThemedText type="defaultSemiBold" style={styles.title} numberOfLines={2}>
+              {title}
+            </ThemedText>
+
+            <ThemedText style={[styles.description, { color: textSecondary }]} numberOfLines={3}>
+              {description}
+            </ThemedText>
+          </View>
         </View>
 
-        {/* Main Content */}
-        <View style={styles.textContainer}>
-          <ThemedText type="defaultSemiBold" style={styles.title} numberOfLines={2}>
-            {title}
-          </ThemedText>
-
-          <ThemedText style={[styles.description, { color: textSecondary }]} numberOfLines={3}>
-            {description}
-          </ThemedText>
-
+        {/* Bottom Row: Metadata and View Button */}
+        <View style={styles.bottomRow}>
           <View style={styles.metaContainer}>
             <View style={styles.categoryTag}>
               <ThemedText style={styles.categoryText}>{category}</ThemedText>
@@ -71,19 +77,17 @@ export function EntrepreneurshipCard({
             <View style={styles.metaItem}>
               <FontAwesome5 name="eye" size={12} color={textSecondary} />
               <ThemedText style={[styles.metaText, { color: textSecondary }]}>
-                {views} views
+                {views}
               </ThemedText>
             </View>
           </View>
+          <TouchableOpacity
+            style={styles.viewButton}
+            onPress={onView}
+            activeOpacity={0.8}>
+            <ThemedText style={styles.viewButtonText}>View</ThemedText>
+          </TouchableOpacity>
         </View>
-
-        {/* Right Action Button */}
-        <TouchableOpacity
-          style={styles.viewButton}
-          onPress={onView}
-          activeOpacity={0.8}>
-          <ThemedText style={styles.viewButtonText}>View</ThemedText>
-        </TouchableOpacity>
       </View>
     </ThemedView>
   );
@@ -97,10 +101,12 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   content: {
-    flexDirection: 'row',
     padding: 16,
     gap: 12,
-    alignItems: 'flex-start',
+  },
+  topRow: {
+    flexDirection: 'row',
+    gap: 12,
   },
   iconContainer: {
     width: 60,
@@ -125,11 +131,18 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     flex: 1,
   },
+  bottomRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 8,
+    marginLeft: 10,
+  },
   metaContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    marginTop: 8,
+    flex: 1,
   },
   categoryTag: {
     backgroundColor: '#10b981',
@@ -151,11 +164,10 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   viewButton: {
-    backgroundColor: '#3b82f6',
+    backgroundColor: '#046A38',
     paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 8,
-    alignSelf: 'flex-start',
+    paddingVertical: 5,
+    borderRadius: 16,
     minWidth: 70,
     alignItems: 'center',
   },

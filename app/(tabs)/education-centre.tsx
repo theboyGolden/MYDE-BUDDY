@@ -1,12 +1,9 @@
-import { FontAwesome5 } from '@expo/vector-icons';
-import React, { useState } from 'react';
-import { Linking, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import React from 'react';
+import { Linking, ScrollView, StyleSheet, View } from 'react-native';
 
-import { AIChatAssistant } from '@/components/ai-chat-assistant';
+import FloatingAIButton from '@/components/floating-ai-button';
 import { Header } from '@/components/header';
 import { ScholarshipCard } from '@/components/scholarship-card';
-import { ThemedText } from '@/components/themed-text';
-import { useThemeColor } from '@/hooks/use-theme-color';
 
 interface Scholarship {
   id: string;
@@ -133,19 +130,6 @@ const sampleScholarships: Scholarship[] = [
 ];
 
 export default function EducationCentreScreen() {
-  const [activeTab, setActiveTab] = useState<'opportunities' | 'chat'>('opportunities');
-  const [showChatHistory, setShowChatHistory] = useState(false);
-  const backgroundColor = useThemeColor({}, 'background');
-  const tintColor = '#046A38'; // Green color for active tab
-  const textColor = useThemeColor({}, 'text');
-  const textSecondary = useThemeColor(
-    { light: '#666666', dark: '#999999' },
-    'text'
-  );
-  const borderColor = useThemeColor(
-    { light: 'rgba(0, 0, 0, 0.1)', dark: 'rgba(255, 255, 255, 0.1)' },
-    'background'
-  );
 
   const handleApply = async (scholarshipId: string) => {
     const scholarship = sampleScholarships.find((s) => s.id === scholarshipId);
@@ -170,90 +154,24 @@ export default function EducationCentreScreen() {
     <View style={styles.container}>
       <Header title="Education Centre" />
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Tab Navigation */}
-        <View style={styles.tabContainer}>
-          <TouchableOpacity
-            style={[
-              styles.tab,
-              activeTab === 'opportunities'
-                ? [styles.activeTab, { backgroundColor: tintColor }]
-                : [styles.inactiveTab, { borderColor: textSecondary }],
-            ]}
-            onPress={() => setActiveTab('opportunities')}
-            activeOpacity={0.7}>
-            <FontAwesome5
-              name="graduation-cap"
-              size={16}
-              color={activeTab === 'opportunities' ? '#fff' : textSecondary}
+        {/* Scholarships List */}
+        <View style={styles.scholarshipsContainer}>
+          {sampleScholarships.map((scholarship) => (
+            <ScholarshipCard
+              key={scholarship.id}
+              title={scholarship.title}
+              description={scholarship.description}
+              deadline={scholarship.deadline}
+              imageUri={scholarship.imageUri}
+              location={scholarship.location}
+              views={scholarship.views}
+              onApply={() => handleApply(scholarship.id)}
             />
-            <ThemedText
-              style={[
-                styles.tabText,
-                { color: activeTab === 'opportunities' ? '#fff' : textSecondary },
-              ]}>
-              Opportunities
-            </ThemedText>
-            {activeTab === 'opportunities' && (
-              <View style={styles.badge}>
-                <ThemedText style={styles.badgeText}>{sampleScholarships.length}</ThemedText>
-              </View>
-            )}
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[
-              styles.tab,
-              activeTab === 'chat'
-                ? [styles.activeTab, { backgroundColor: textSecondary }]
-                : [styles.inactiveTab, { borderColor: textSecondary }],
-            ]}
-            onPress={() => setActiveTab('chat')}
-            activeOpacity={0.7}>
-            <FontAwesome5
-              name="comments"
-              size={16}
-              color={activeTab === 'chat' ? '#fff' : textSecondary}
-            />
-            <ThemedText
-              style={[
-                styles.tabText,
-                { color: activeTab === 'chat' ? '#fff' : textSecondary },
-              ]}>
-              AI Assistant
-            </ThemedText>
-          </TouchableOpacity>
+          ))}
         </View>
-        
-
-        {activeTab === 'opportunities' && (
-          <>
-           
-
-            {/* Scholarships List */}
-            <View style={styles.scholarshipsContainer}>
-              {sampleScholarships.map((scholarship) => (
-                <ScholarshipCard
-                  key={scholarship.id}
-                  title={scholarship.title}
-                  description={scholarship.description}
-                  deadline={scholarship.deadline}
-                  imageUri={scholarship.imageUri}
-                  location={scholarship.location}
-                  views={scholarship.views}
-                  onApply={() => handleApply(scholarship.id)}
-                />
-              ))}
-            </View>
-          </>
-        )}
-
-        {activeTab === 'chat' && (
-          <AIChatAssistant
-            context="education"
-            onChatHistoryToggle={() => setShowChatHistory(!showChatHistory)}
-          />
-        )}
       </ScrollView>
+      
+      <FloatingAIButton context="education" />
     </View>
   );
 }
@@ -264,49 +182,7 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
-  },
-  tabContainer: {
-    flexDirection: 'row',
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 12,
-    gap: 12,
-    alignItems: 'center',
-    justifyContent: 'flex-start',
-  },
-  tab: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 20,
-    gap: 8,
-    minWidth: 120,
-  },
-  activeTab: {
-    backgroundColor: '#046A38',
-  },
-  inactiveTab: {
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-  },
-  tabText: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  badge: {
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 10,
-    minWidth: 24,
-    alignItems: 'center',
-  },
-  badgeText: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: '700',
+    marginTop: 20,
   },
   titleSection: {
     flexDirection: 'row',
