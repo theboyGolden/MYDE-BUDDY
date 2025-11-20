@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "moyde_buddy",
-    "slug": "moyde_buddy",
+    "name": "myde_buddy",
+    "slug": "myde_buddy",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "moydebuddy",
+    "scheme": "mydebuddy",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
