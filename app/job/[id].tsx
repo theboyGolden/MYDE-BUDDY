@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { CompatibilityStatistics } from "@/components/compatibility-statistics";
 import { ThemedText } from "@/components/themed-text";
 import { useUserProfile } from "@/contexts/user-profile-context";
 import { JOBS } from "@/data/jobs";
@@ -143,6 +144,9 @@ export default function JobDetailsScreen() {
             </ThemedText>
           </View>
         </View>
+
+        {/* Compatibility Statistics */}
+        <CompatibilityStatistics job={job} userProfile={userProfileForMatch} />
 
         {/* Match Section */}
         <View style={[styles.matchCard, { backgroundColor: surface }]}>
